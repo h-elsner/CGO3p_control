@@ -52,6 +52,7 @@ type
     SaveDialog1: TSaveDialog;
     StatusBar1: TStatusBar;
     gridStatus: TStringGrid;
+    timerYGCcommandLong: TTimer;
     timerYGCHeartbeat: TTimer;
     timerFCCommand: TTimer;
     timerTelemetry: TTimer;
@@ -77,6 +78,7 @@ type
     procedure timerFCCommandTimer(Sender: TObject);
     procedure timerFCHeartbeatTimer(Sender: TObject);
     procedure timerTelemetryTimer(Sender: TObject);
+    procedure timerYGCcommandLongTimer(Sender: TObject);
     procedure timerYGCHeartbeatTimer(Sender: TObject);
   private
     procedure StopAllTimer;
@@ -318,6 +320,7 @@ procedure TForm1.StopAllTimer;
 begin
   timerFCHeartbeat.Enabled:=false;
   timerYGCHeartbeat.Enabled:=false;
+  timerYGCcommandLong.Enabled:=false;
   timerTelemetry.Enabled:=false;
   timerFCCommand.Enabled:=false;
 end;
@@ -382,23 +385,46 @@ end;
     3: 'ACC'
     5: 'TEMP_DIFF'
     6: 'M_STATUS'
-    $12: 'Undef 0x12 (18)   1Hz'    Ser-No?
-    $FE: 'FW_Info'
+    $12: 'Serial number'
+    $FE: 'Text info'
 
  YGC_Command
-    $14: 'Front_cali?'
+      1:   //  1..5 len=21 , Bytes 0 or $64 (4/5)
+      2:
+      3:
+      4:
+      5:
+      6: 'Read PID'
+    $14: 'Front_cali'
     $18: 'Read_SWversion'
     $24: 'Heartbeat'        1Hz }
 
-procedure CreateYGCcommandMessage(var msg: TMavMessage; const command: byte=$24);
+procedure CreateYGCcommandMessage(var msg: TMavMessage; const func: byte=$24);
 begin
   CreateStandardPartMsg(msg, 2);
   msg.msgbytes[2]:=1;
   msg.msgbytes[3]:=YGCsysID;                            {SysId YGC}
   msg.msgbytes[5]:=2;                                   {to Gimbal}
   msg.msgbytes[7]:=2;                                   {MsgID}
-  msg.msgbytes[8]:=command;                             {YGC_Type}
-  msg.msgbytes[8]:=command;                             {YGC_Command}
+  msg.msgbytes[8]:=func;                                {YGC_Type}
+  msg.msgbytes[8]:=func;                                {YGC_Command}
+  SetCRC(msg);
+end;
+
+procedure CreateYGCcommandMessageLong(var msg: TMavMessage; const YGCtype: byte);
+var
+  i: integer;
+
+begin
+  CreateStandardPartMsg(msg, 33);                       {Good for 15 int16 values}
+  msg.msgbytes[2]:=1;
+  msg.msgbytes[3]:=YGCsysID;                            {SysId YGC}
+  msg.msgbytes[5]:=2;                                   {to Gimbal}
+  msg.msgbytes[7]:=2;                                   {MsgID}
+  msg.msgbytes[8]:=YGCtype;                             {YGC_Type}
+  if (YGCtype=4) or (YGCtype=5) then
+    for i:=11 to 16 do
+      msg.msgbytes[i]:=$64;                             {100 decimal, placeholder?}
   SetCRC(msg);
 end;
 
@@ -727,8 +753,9 @@ end;
 procedure TForm1.ActAsGimbalChecker(var msg: TMAVmessage; list: TStringList);
 begin
   ClearMessageTables;
-  timerYGCHeartbeat.Enabled:=true;
+  timerYGCcommandLong.Enabled:=true;
   sleep(100);
+  timerYGCHeartbeat.Enabled:=true;
   while (UART.LastError=0) and UARTConnected do begin
     if UART.CanRead(0) then begin
       ReadMessage(msg);
@@ -867,11 +894,13 @@ var
 
 begin
   if UARTConnected then begin
+    timerYGCcommandLong.Enabled:=false;
     CreateYGCcommandMessage(msg, StrToIntDef(edCommand.Text, $18));
     if msg.valid then begin
       if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
         inc(MessagesSent);
     end;
+    timerYGCcommandLong.Enabled:=true;
   end;
 end;
 
@@ -950,6 +979,24 @@ begin
       if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
         inc(MessagesSent);
     end;
+  end;
+end;
+
+procedure TForm1.timerYGCcommandLongTimer(Sender: TObject);
+var
+  msg: TMAVmessage;
+  i: byte;
+
+begin
+  if UARTConnected then begin
+    for i:= 1 to 5 do begin
+      CreateYGCcommandMessageLong(msg, i);
+      if msg.valid then begin
+        if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
+          inc(MessagesSent);
+      end;
+    end;
+    sleep(10);
   end;
 end;
 
