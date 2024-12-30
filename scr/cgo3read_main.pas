@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   Buttons, ActnList, Menus, Process, XMLPropStorage, ComCtrls, Grids, TAGraph,
-  TASeries, synaser, MKnob, mav_def, mav_msg, Types;
+  TASeries, synaser, MKnob, mav_def, mav_msg;
 
 type
 
@@ -19,12 +19,20 @@ type
     acDisconnect: TAction;
     acScanPorts: TAction;
     ActionList1: TActionList;
+    btnZeroPhaseCali: TButton;
+    btnYawEncCali: TButton;
+    btnAccCali: TButton;
+    btnZeroPhaseErs: TButton;
+    btnAccErase: TButton;
+    btnYawEncErs: TButton;
+    btnPreFrontCali: TButton;
     btnDisconnect: TBitBtn;
     btnClose: TBitBtn;
     btnConnect: TBitBtn;
     btnCenter: TButton;
+    btnFrontCali: TButton;
+    btnFrontErs: TButton;
     btnVersion: TButton;
-    btnCommand: TButton;
     cbPort: TComboBox;
     cbRecord: TCheckBox;
     cbSpeed: TComboBox;
@@ -35,9 +43,9 @@ type
     chTilt: TChart;
     chPan: TChart;
     chTiltLineSeries1: TLineSeries;
-    edCommand: TEdit;
     gridVarious: TStringGrid;
     knPanControl: TmKnob;
+    lblPowerCycle: TLabel;
     lblGimbalBootTime: TLabel;
     lblBootTime: TLabel;
     lblGimbalVersion: TLabel;
@@ -53,7 +61,6 @@ type
     StatusBar1: TStatusBar;
     gridStatus: TStringGrid;
     timerYGCcommandLong: TTimer;
-    timerYGCHeartbeat: TTimer;
     timerFCCommand: TTimer;
     timerTelemetry: TTimer;
     timerFCHeartbeat: TTimer;
@@ -66,9 +73,16 @@ type
     procedure acConnectExecute(Sender: TObject);
     procedure acDisconnectExecute(Sender: TObject);
     procedure acScanPortsExecute(Sender: TObject);
+    procedure btnAccCaliClick(Sender: TObject);
+    procedure btnAccEraseClick(Sender: TObject);
     procedure btnCenterClick(Sender: TObject);
-    procedure btnCommandClick(Sender: TObject);
+    procedure btnFrontErsClick(Sender: TObject);
+    procedure btnPreFrontCaliClick(Sender: TObject);
     procedure btnVersionClick(Sender: TObject);
+    procedure btnYawEncCaliClick(Sender: TObject);
+    procedure btnYawEncErsClick(Sender: TObject);
+    procedure btnZeroPhaseCaliClick(Sender: TObject);
+    procedure btnZeroPhaseErsClick(Sender: TObject);
     procedure cbPortDblClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -79,7 +93,6 @@ type
     procedure timerFCHeartbeatTimer(Sender: TObject);
     procedure timerTelemetryTimer(Sender: TObject);
     procedure timerYGCcommandLongTimer(Sender: TObject);
-    procedure timerYGCHeartbeatTimer(Sender: TObject);
   private
     procedure StopAllTimer;
     procedure CreateFCControl(var msg: TMavMessage; SequenceNumber: byte);
@@ -102,6 +115,8 @@ type
     procedure ActAsFlightController(var msg: TMAVmessage; list: TStringList);
     procedure ActAsGimbalChecker(var msg: TMAVmessage; list: TStringList);
     procedure ReadYGCcameraMessages(msg: TMAVmessage);
+    procedure SendYGCHeartbeat;
+
 
     function YGC_TimestampIn_ms(msg: TMAVmessage): integer;
     procedure GIMBAL_GYRO_POWER(msg: TMAVmessage);
@@ -319,7 +334,6 @@ end;
 procedure TForm1.StopAllTimer;
 begin
   timerFCHeartbeat.Enabled:=false;
-  timerYGCHeartbeat.Enabled:=false;
   timerYGCcommandLong.Enabled:=false;
   timerTelemetry.Enabled:=false;
   timerFCCommand.Enabled:=false;
@@ -388,16 +402,43 @@ end;
     $12: 'Serial number'
     $FE: 'Text info'
 
- YGC_Command
-      1:   //  1..5 len=21 , Bytes 0 or $64 (4/5)
-      2:
-      3:
-      4:
-      5:
-      6: 'Read PID'
-    $14: 'Front_cali'
-    $18: 'Read_SWversion'
-    $24: 'Heartbeat'        1Hz }
+ YGC_Command: short commands: len=2
+      0: Erase all & Button 1                           !!
+
+      1: len=21, default all Bytes 0
+      2: len=21, default all Bytes 0
+      3: len=21, default all Bytes 0
+      4: len=21, default Bytes 11..16 $64, all other 0
+      5: len=21, default Bytes 11..16 $64, all other 0
+
+      6: Read PID
+      7: Save PID
+      8: Reset PID
+      9: IMU temp cali
+    $0A: IMU temp erase                                 !!
+    $0C: Yaw encoder cali
+    $0D: Yaw encoder erase
+    $0F: Pre front cali
+    $10: Zero phase cali
+    $11: Zero phase erase
+    $12: Acc cali
+    $13: Acc erase
+    $14: Front cali
+    $15: Front erase
+    $16: Close motor
+    $17: Open motor
+    $18: Read software
+    $19: Restart GB
+    $1A: High frequency IMU
+    $1E: Motor test
+    $1F: Reson test
+    $20: Vibration test
+    $24: Reaction to heartbeat gimbal, no button assigned
+    $25: High frequency Gyro
+    $26: High frequency Acc
+    $27: Close high frequency
+
+}
 
 procedure CreateYGCcommandMessage(var msg: TMavMessage; const func: byte=$24);
 begin
@@ -702,21 +743,42 @@ begin
   Memo1.Lines.Add(s);
 end;
 
+procedure TForm1.SendYGCHeartbeat;
+var
+  msg: TMAVmessage;
+
+begin
+  if UARTConnected then begin
+    CreateYGCcommandMessage(msg);
+    if msg.valid then begin
+      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
+        inc(MessagesSent);
+    end;
+  end;
+  StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
+  StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+end;
+
 procedure TForm1.ReadYGCcameraMessages(msg: TMAVmessage);
 begin
-  if (msg.msgid=2) and (msg.targetid=YGCsysID) then begin
-    case msg.msgbytes[8] of             {YGC message type}
-      1: if rgYGC_Type.ItemIndex=0 then GIMBAL_GYRO_POWER(msg);
-      2: if rgYGC_Type.ItemIndex=1 then GIMBAL_EULER_ANGLE(msg);
-      3: if rgYGC_Type.ItemIndex=2 then GIMBAL_ACC(msg);
-      5: if rgYGC_Type.ItemIndex=3 then GIMBAL_TEMP_DIFF(msg);
-      6: GIMBAL_STATUS(msg);
-      $12: CAM_SERIAL(msg);
-      $FE: TEXT_MESSAGE(msg);
+  if msg.sysid=2 then begin
+    if msg.msgid=0 then
+      SendYGCHeartbeat
     else
-      Memo1.Lines.Add('Unknown YGC message type: 0x'+
-                      IntToHex(msg.msgbytes[8], 2)+tab2+
-                      ' = '+IntToStr(msg.msgbytes[8]));
+    if (msg.msgid=2) and (msg.targetid=YGCsysID) then begin
+      case msg.msgbytes[8] of             {YGC message type}
+        1: if rgYGC_Type.ItemIndex=0 then GIMBAL_GYRO_POWER(msg);
+        2: if rgYGC_Type.ItemIndex=1 then GIMBAL_EULER_ANGLE(msg);
+        3: if rgYGC_Type.ItemIndex=2 then GIMBAL_ACC(msg);
+        5: if rgYGC_Type.ItemIndex=3 then GIMBAL_TEMP_DIFF(msg);
+        6: GIMBAL_STATUS(msg);
+        $12: CAM_SERIAL(msg);
+        $FE: TEXT_MESSAGE(msg);
+      else
+        Memo1.Lines.Add('Unknown YGC message type: 0x'+
+                        IntToHex(msg.msgbytes[8], 2)+tab2+
+                        ' = '+IntToStr(msg.msgbytes[8]));
+      end;
     end;
   end;
 end;
@@ -754,8 +816,6 @@ procedure TForm1.ActAsGimbalChecker(var msg: TMAVmessage; list: TStringList);
 begin
   ClearMessageTables;
   timerYGCcommandLong.Enabled:=true;
-  sleep(100);
-  timerYGCHeartbeat.Enabled:=true;
   while (UART.LastError=0) and UARTConnected do begin
     if UART.CanRead(0) then begin
       ReadMessage(msg);
@@ -888,34 +948,63 @@ begin
   knPanControl.Position:=2048;
 end;
 
-procedure TForm1.btnCommandClick(Sender: TObject);
+procedure SendCommand(const CommandCode: byte);
 var
   msg: TMAVmessage;
 
 begin
   if UARTConnected then begin
-    timerYGCcommandLong.Enabled:=false;
-    CreateYGCcommandMessage(msg, StrToIntDef(edCommand.Text, $18));
+    CreateYGCcommandMessage(msg, CommandCode);
     if msg.valid then begin
       if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
         inc(MessagesSent);
     end;
-    timerYGCcommandLong.Enabled:=true;
   end;
 end;
 
-procedure TForm1.btnVersionClick(Sender: TObject);
-var
-  msg: TMAVmessage;
-
+procedure TForm1.btnFrontErsClick(Sender: TObject);
 begin
-  if UARTConnected then begin
-    CreateYGCcommandMessage(msg, $18);
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
-        inc(MessagesSent);
-    end;
-  end;
+  SendCommand($15);
+end;
+
+procedure TForm1.btnAccCaliClick(Sender: TObject);
+begin
+  SendCommand($12);
+end;
+
+procedure TForm1.btnPreFrontCaliClick(Sender: TObject);
+begin
+  SendCommand($0F);
+end;
+
+procedure TForm1.btnAccEraseClick(Sender: TObject);
+begin
+  SendCommand($13);
+end;
+
+procedure TForm1.btnVersionClick(Sender: TObject);
+begin
+  SendCommand($18);
+end;
+
+procedure TForm1.btnYawEncCaliClick(Sender: TObject);
+begin
+  SendCommand($0C);
+end;
+
+procedure TForm1.btnYawEncErsClick(Sender: TObject);
+begin
+  SendCommand($0D);
+end;
+
+procedure TForm1.btnZeroPhaseCaliClick(Sender: TObject);
+begin
+  SendCommand($10);
+end;
+
+procedure TForm1.btnZeroPhaseErsClick(Sender: TObject);
+begin
+  SendCommand($11);
 end;
 
 procedure TForm1.cbPortDblClick(Sender: TObject);
@@ -998,22 +1087,6 @@ begin
     end;
     sleep(10);
   end;
-end;
-
-procedure TForm1.timerYGCHeartbeatTimer(Sender: TObject);
-var
-  msg: TMAVmessage;
-
-begin
-  if UARTConnected then begin
-    CreateYGCcommandMessage(msg);
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
-        inc(MessagesSent);
-    end;
-  end;
-  StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
-  StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
 end;
 
 procedure TForm1.timerFCCommandTimer(Sender: TObject);
