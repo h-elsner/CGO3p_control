@@ -9,6 +9,7 @@ There are two main functions:
 
 ![Screenshot](ControlCGO3_YGC.png)
 
-NOTE: Test telemetry will only be recorded in ST16 if flight controller is connected (via SR24) and sends telemetry too.
+NOTE: Test telemetry will only be recorded by ST16 in flight logs if flight controller is connected (via SR24) and sends telemetry too.
 
 To compile this tool you need the common units from this repo: https://github.com/h-elsner/common_units
+Also the packages Synapse and Industrial stuff have to be installed (use OPM).
