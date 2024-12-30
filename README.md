@@ -7,5 +7,6 @@ There are two main functions:
 - You can act as flight controller. You have switsches and slider for the gimbal like the ST16 has. This opens possibilities to reuse the camera for other purposes.
 - You can act as Gimbls checker to read extended data from the gimbal. Currently the serial number and the firmware versions for the subsystems - more to come.
 
+![Screenshot](ControlCGO3_YGC.png)
 
 To compile this tool you need the common units from this repo: https://github.com/h-elsner/common_units
