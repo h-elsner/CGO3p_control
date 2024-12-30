@@ -24,6 +24,7 @@ type
     btnConnect: TBitBtn;
     btnCenter: TButton;
     btnVersion: TButton;
+    btnCommand: TButton;
     cbPort: TComboBox;
     cbRecord: TCheckBox;
     cbSpeed: TComboBox;
@@ -34,18 +35,23 @@ type
     chTilt: TChart;
     chPan: TChart;
     chTiltLineSeries1: TLineSeries;
+    edCommand: TEdit;
+    gridVarious: TStringGrid;
     knPanControl: TmKnob;
+    lblGimbalBootTime: TLabel;
+    lblBootTime: TLabel;
     lblGimbalVersion: TLabel;
     lblPanControl: TLabel;
     Memo1: TMemo;
     PageControl: TPageControl;
     panelRight: TPanel;
     panelYGCTop: TPanel;
+    rgYGC_Type: TRadioGroup;
     rgPanMode: TRadioGroup;
     rgTiltMode: TRadioGroup;
     SaveDialog1: TSaveDialog;
     StatusBar1: TStatusBar;
-    gridLeft: TStringGrid;
+    gridStatus: TStringGrid;
     timerYGCHeartbeat: TTimer;
     timerFCCommand: TTimer;
     timerTelemetry: TTimer;
@@ -60,12 +66,14 @@ type
     procedure acDisconnectExecute(Sender: TObject);
     procedure acScanPortsExecute(Sender: TObject);
     procedure btnCenterClick(Sender: TObject);
+    procedure btnCommandClick(Sender: TObject);
     procedure btnVersionClick(Sender: TObject);
     procedure cbPortDblClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure knPanControlChange(Sender: TObject; AValue: Longint);
+    procedure rgYGC_TypeClick(Sender: TObject);
     procedure timerFCCommandTimer(Sender: TObject);
     procedure timerFCHeartbeatTimer(Sender: TObject);
     procedure timerTelemetryTimer(Sender: TObject);
@@ -76,6 +84,14 @@ type
     procedure CreateTelemetry5GHz(var msg: TMavMessage; SequenceNumber: byte);
     function PanModeToInt: uint16;
     function TiltModeToInt: uint16;
+
+    procedure WriteHeader_STATUS;
+    procedure WriteHeader_GYRO_POWER;
+    procedure WriteHeader_EULER_ANGLE;
+    procedure WriteHeader_ACC;
+    procedure WriteHeader_TEMP_DIFF;
+    procedure ClearMessageTables;
+
   public
     procedure ReadMessage(var msg: TMAVmessage);
     procedure ReadGimbalPosition(msg: TMAVmessage);
@@ -85,6 +101,12 @@ type
     procedure ActAsGimbalChecker(var msg: TMAVmessage; list: TStringList);
     procedure ReadYGCcameraMessages(msg: TMAVmessage);
 
+    function YGC_TimestampIn_ms(msg: TMAVmessage): integer;
+    procedure GIMBAL_GYRO_POWER(msg: TMAVmessage);
+    procedure GIMBAL_EULER_ANGLE(msg: TMAVmessage);
+    procedure GIMBAL_ACC(msg: TMAVmessage);
+    procedure GIMBAL_TEMP_DIFF(msg: TMAVmessage);
+    procedure GIMBAL_STATUS(msg: TMAVmessage);
     procedure CAM_SERIAL(msg: TMAVmessage);
     procedure TEXT_MESSAGE(msg: TMAVmessage);
   end;
@@ -102,7 +124,7 @@ var
 
 const
   AppName='Read CGO3 UART';
-  AppVersion='V0.3 2024-12-29';
+  AppVersion='V0.4 2024-12-30';
 
   tab1=' ';
   tab2='  ';
@@ -130,6 +152,123 @@ begin
   cbSpeed.Text:=IntToStr(defaultbaud);
   UARTconnected:=false;
   Memo1.Lines.Clear;
+  WriteHeader_STATUS;
+  WriteHeader_GYRO_POWER;
+end;
+
+procedure TForm1.WriteHeader_STATUS;
+begin
+  gridStatus.RowCount:=15;
+  gridStatus.Cells[0, 0]:='STATUS';
+  gridStatus.Cells[1, 0]:='Value';
+  gridVarious.Cells[1, 0]:='Value';
+  gridStatus.Cells[0, 1]:='Voltage';
+  gridStatus.Cells[0, 2]:='Ampere';
+  gridStatus.Cells[0, 3]:='Seconds';
+  gridStatus.Cells[0, 4]:='EncDataP';
+  gridStatus.Cells[0, 5]:='EncDataR';
+  gridStatus.Cells[0, 6]:='EncDataY';
+  gridStatus.Cells[0, 7]:='StageAngleX';
+  gridStatus.Cells[0, 8]:='StageAngleY';
+  gridStatus.Cells[0, 9]:='AircraftAngleX';
+  gridStatus.Cells[0, 10]:='AircraftAngleY';
+  gridStatus.Cells[0, 11]:='AircraftAngleZ';
+  gridStatus.Cells[0, 12]:='GyroStableX';
+  gridStatus.Cells[0, 13]:='GyroStableY';
+  gridStatus.Cells[0, 14]:='GyroStableZ';
+end;
+
+procedure TForm1.WriteHeader_GYRO_POWER;
+begin
+  gridVarious.RowCount:=16;
+  gridVarious.Cells[0, 0]:='GYRO_POWER';
+  gridVarious.Cells[0, 1]:='GyroHopeX';
+  gridVarious.Cells[0, 2]:='GyroHopeY';
+  gridVarious.Cells[0, 3]:='GyroHopeZ';
+  gridVarious.Cells[0, 4]:='GyroX';
+  gridVarious.Cells[0, 5]:='GyroY';
+  gridVarious.Cells[0, 6]:='GyroZ';
+  gridVarious.Cells[0, 7]:='SpeedHopeP';
+  gridVarious.Cells[0, 8]:='SpeedHopeR';
+  gridVarious.Cells[0, 9]:='SpeedHopeY';
+  gridVarious.Cells[0, 10]:='SpeedP';
+  gridVarious.Cells[0, 11]:='SpeedR';
+  gridVarious.Cells[0, 12]:='SpeedY';
+  gridVarious.Cells[0, 13]:='PowerP';
+  gridVarious.Cells[0, 14]:='PowerR';
+  gridVarious.Cells[0, 15]:='PowerY';
+end;
+
+procedure TForm1.WriteHeader_EULER_ANGLE;
+begin
+  gridVarious.RowCount:=16;
+  gridVarious.Cells[0, 0]:='EULER_ANGLE';
+  gridVarious.Cells[0, 1]:='AnglehopeX';
+  gridVarious.Cells[0, 2]:='AnglehopeY';
+  gridVarious.Cells[0, 3]:='AnglehopeZ';
+  gridVarious.Cells[0, 4]:='AngleX';
+  gridVarious.Cells[0, 5]:='AngleY';
+  gridVarious.Cells[0, 6]:='AngleZ';
+  gridVarious.Cells[0, 7]:='EulerHopeP';
+  gridVarious.Cells[0, 8]:='EulerHopeR';
+  gridVarious.Cells[0, 9]:='EulerHopeY';
+  gridVarious.Cells[0, 10]:='EulerP';
+  gridVarious.Cells[0, 11]:='EulerR';
+  gridVarious.Cells[0, 12]:='EulerY';
+  gridVarious.Cells[0, 13]:='AngleErrorX';
+  gridVarious.Cells[0, 14]:='AngleErrorY';
+  gridVarious.Cells[0, 15]:='AngleErrorZ';
+end;
+
+procedure TForm1.WriteHeader_ACC;
+begin
+  gridVarious.RowCount:=16;
+  gridVarious.Cells[0, 0]:='ACC';
+  gridVarious.Cells[0, 1]:='AccLowPassX';
+  gridVarious.Cells[0, 2]:='AccLowPassY';
+  gridVarious.Cells[0, 3]:='AccLowPassZ';
+  gridVarious.Cells[0, 4]:='AccLowPass';
+  gridVarious.Cells[0, 5]:='AccX';
+  gridVarious.Cells[0, 6]:='AccY';
+  gridVarious.Cells[0, 7]:='AccZ';
+  gridVarious.Cells[0, 8]:='Acc';
+  gridVarious.Cells[0, 9]:='HorizontalAcc';
+  gridVarious.Cells[0, 10]:='VerticalAcc';
+  gridVarious.Cells[0, 11]:='AccKp';
+  gridVarious.Cells[0, 12]:='AccKi';
+  gridVarious.Cells[0, 13]:='AccKd';
+  gridVarious.Cells[0, 14]:='HorizontalAccChageX';
+  gridVarious.Cells[0, 15]:='HorizontalAccChageY';
+end;
+
+procedure TForm1.WriteHeader_TEMP_DIFF;
+begin
+  gridVarious.RowCount:=14;
+  gridVarious.Cells[0, 0]:='TEMP_DIFF';
+  gridVarious.Cells[0, 1]:='HistoryZeroToleranceX';
+  gridVarious.Cells[0, 2]:='HistoryZeroToleranceY';
+  gridVarious.Cells[0, 3]:='HistoryZeroToleranceZ';
+  gridVarious.Cells[0, 4]:='ZeroToleranceX';
+  gridVarious.Cells[0, 5]:='ZeroToleranceY';
+  gridVarious.Cells[0, 6]:='ZeroToleranceZ';
+  gridVarious.Cells[0, 7]:='ZeroVariationX';
+  gridVarious.Cells[0, 8]:='ZeroVariationY';
+  gridVarious.Cells[0, 9]:='ZeroVariationZ';
+  gridVarious.Cells[0, 10]:='TempHope';
+  gridVarious.Cells[0, 11]:='HeatPower';
+  gridVarious.Cells[0, 12]:='TempIntegral';
+  gridVarious.Cells[0, 13]:='IMUTemp';
+end;
+
+procedure TForm1.ClearMessageTables;
+var
+  i: integer;
+
+begin
+  for i:=1 to gridStatus.RowCount-1 do
+    gridStatus.Cells[1, i];
+  for i:=1 to gridVarious.RowCount-1 do
+    gridVarious.Cells[1, i];
 end;
 
 function InvertPanControlPosition(pos: uint16): uint16;
@@ -382,6 +521,137 @@ begin
   end;
 end;
 
+function TForm1.YGC_TimestampIn_ms(msg: TMAVmessage): integer;
+begin
+  result:=MavGetUInt32(msg, 9);
+  lblGimbalBootTime.Caption:=FormatFloat('0.000', result/1000);
+end;
+
+procedure TForm1.GIMBAL_GYRO_POWER(msg: TMAVmessage);
+begin
+  YGC_TimestampIn_ms(msg);
+  gridVarious.Cells[1, 1]:=FormatFloat('0.00', MavGetInt16(msg, 13)/100);       {GyroHope}
+  gridVarious.Cells[1, 2]:=FormatFloat('0.00', MavGetInt16(msg, 15)/100);
+  gridVarious.Cells[1, 3]:=FormatFloat('0.00', MavGetInt16(msg, 17)/100);
+
+  gridVarious.Cells[1, 4]:=FormatFloat('0.00', MavGetInt16(msg, 19)/100);       {Gyro}
+  gridVarious.Cells[1, 5]:=FormatFloat('0.00', MavGetInt16(msg, 21)/100);
+  gridVarious.Cells[1, 6]:=FormatFloat('0.00', MavGetInt16(msg, 23)/100);
+
+  gridVarious.Cells[1, 7]:=FormatFloat('0.00', MavGetInt16(msg, 25)/100);       {SpeedHope}
+  gridVarious.Cells[1, 8]:=FormatFloat('0.00', MavGetInt16(msg, 27)/100);
+  gridVarious.Cells[1, 9]:=FormatFloat('0.00', MavGetInt16(msg, 29)/100);
+
+  gridVarious.Cells[1, 10]:=FormatFloat('0.00', MavGetInt16(msg, 31)/100);      {Speed}
+  gridVarious.Cells[1, 11]:=FormatFloat('0.00', MavGetInt16(msg, 33)/100);
+  gridVarious.Cells[1, 12]:=FormatFloat('0.00', MavGetInt16(msg, 35)/100);
+
+  gridVarious.Cells[1, 13]:=FormatFloat('0.00', MavGetInt16(msg, 37)/100);      {Power}
+  gridVarious.Cells[1, 14]:=FormatFloat('0.00', MavGetInt16(msg, 39)/100);
+  gridVarious.Cells[1, 15]:=FormatFloat('0.00', MavGetInt16(msg, 41)/100);
+end;
+
+procedure TForm1.GIMBAL_EULER_ANGLE(msg: TMAVmessage);
+var
+  AngleHopeX, AngleHopeY, AngleHopeZ: int16;
+  AngleX, AngleY, AngleZ: int16;
+
+begin
+  YGC_TimestampIn_ms(msg);
+  AngleHopeX:=MavGetInt16(msg, 13);
+
+  AngleHopeY:=MavGetInt16(msg, 15);
+  AngleHopeZ:=MavGetInt16(msg, 17);
+  gridVarious.Cells[1, 1]:=FormatFloat('0.00', AngleHopeX/100);
+  gridVarious.Cells[1, 2]:=FormatFloat('0.00', AngleHopeY/100);
+  gridVarious.Cells[1, 3]:=FormatFloat('0.00', AngleHopeZ/100);
+  AngleX:=MavGetInt16(msg, 19);
+  AngleY:=MavGetInt16(msg, 21);
+  AngleZ:=MavGetInt16(msg, 23);
+  gridVarious.Cells[1, 4]:=FormatFloat('0.00', AngleX/100);
+  gridVarious.Cells[1, 5]:=FormatFloat('0.00', AngleY/100);
+  gridVarious.Cells[1, 6]:=FormatFloat('0.00', AngleZ/100);
+
+  gridVarious.Cells[1, 7]:=FormatFloat('0.00', MavGetInt16(msg, 25)/100);       {EulerHope}
+  gridVarious.Cells[1, 8]:=FormatFloat('0.00', MavGetInt16(msg, 27)/100);
+  gridVarious.Cells[1, 9]:=FormatFloat('0.00', MavGetInt16(msg, 29)/100);
+
+  gridVarious.Cells[1, 10]:=FormatFloat('0.00', MavGetInt16(msg, 31)/100);      {Euler}
+  gridVarious.Cells[1, 11]:=FormatFloat('0.00', MavGetInt16(msg, 33)/100);
+  gridVarious.Cells[1, 12]:=FormatFloat('0.00', MavGetInt16(msg, 35)/100);
+
+  gridVarious.Cells[1, 13]:=FormatFloat('0.00', (AngleHopeX-AngleX)/100);       {AngleError}
+  gridVarious.Cells[1, 14]:=FormatFloat('0.00', (AngleHopeY-AngleY)/100);
+  gridVarious.Cells[1, 15]:=FormatFloat('0.00', (AngleHopeZ-AngleZ)/100);
+end;
+
+procedure TForm1.GIMBAL_ACC(msg: TMAVmessage);
+begin
+  YGC_TimestampIn_ms(msg);
+  gridVarious.Cells[1, 1]:=FormatFloat('0.000', MavGetInt16(msg, 13)/1000);     {AccLowPass}
+  gridVarious.Cells[1, 2]:=FormatFloat('0.000', MavGetInt16(msg, 15)/1000);
+  gridVarious.Cells[1, 3]:=FormatFloat('0.000', MavGetInt16(msg, 17)/1000);
+  gridVarious.Cells[1, 4]:=FormatFloat('0.000', MavGetInt16(msg, 19)/1000);
+
+  gridVarious.Cells[1, 5]:=FormatFloat('0.000', MavGetInt16(msg, 21)/1000);     {Acc}
+  gridVarious.Cells[1, 6]:=FormatFloat('0.000', MavGetInt16(msg, 23)/1000);
+  gridVarious.Cells[1, 7]:=FormatFloat('0.000', MavGetInt16(msg, 25)/1000);
+  gridVarious.Cells[1, 8]:=FormatFloat('0.000', MavGetInt16(msg, 27)/1000);
+
+  gridVarious.Cells[1, 9]:=FormatFloat('0.000', MavGetInt16(msg, 29)/1000);     {HorizontalAcc}
+  gridVarious.Cells[1, 10]:=FormatFloat('0.000', MavGetInt16(msg, 31)/1000);    {VerticalAcc}
+
+  gridVarious.Cells[1, 11]:=FormatFloat('0.000', MavGetInt16(msg, 33)/1000);    {AccKp}
+  gridVarious.Cells[1, 12]:=FormatFloat('0.000', MavGetInt16(msg, 35)/1000);
+  gridVarious.Cells[1, 13]:=FormatFloat('0.000', MavGetInt16(msg, 37)/1000);
+
+  gridVarious.Cells[1, 14]:=FormatFloat('0.00', MavGetInt16(msg, 39)/100);      {HorizontalAccChage}
+  gridVarious.Cells[1, 15]:=FormatFloat('0.00', MavGetInt16(msg, 41)/100);
+end;
+
+procedure TForm1.GIMBAL_TEMP_DIFF(msg: TMAVmessage);
+begin
+  YGC_TimestampIn_ms(msg);
+  gridVarious.Cells[1, 1]:=FormatFloat('0.000', MavGetInt16(msg, 13)/1000);     {HistoryZroTolerance}
+  gridVarious.Cells[1, 2]:=FormatFloat('0.000', MavGetInt16(msg, 15)/1000);
+  gridVarious.Cells[1, 3]:=FormatFloat('0.000', MavGetInt16(msg, 17)/1000);
+
+  gridVarious.Cells[1, 4]:=FormatFloat('0.000', MavGetInt16(msg, 19)/1000);     {ZroTolerance}
+  gridVarious.Cells[1, 5]:=FormatFloat('0.000', MavGetInt16(msg, 21)/1000);
+  gridVarious.Cells[1, 6]:=FormatFloat('0.000', MavGetInt16(msg, 23)/1000);
+
+  gridVarious.Cells[1, 7]:=FormatFloat('0.000', MavGetInt16(msg, 25)/1000);     {ZroVariation}
+  gridVarious.Cells[1, 8]:=FormatFloat('0.000', MavGetInt16(msg, 27)/1000);
+  gridVarious.Cells[1, 9]:=FormatFloat('0.000', MavGetInt16(msg, 29)/1000);
+
+  gridVarious.Cells[1, 10]:=FormatFloat('0.00', MavGetInt16(msg, 31)/100);      {Temp}
+  gridVarious.Cells[1, 11]:=FormatFloat('0.00', MavGetInt16(msg, 33)/100);
+  gridVarious.Cells[1, 12]:=FormatFloat('0.00', MavGetInt16(msg, 35)/100);
+  gridVarious.Cells[1, 13]:=FormatFloat('0.00', MavGetInt16(msg, 37)/100);
+end;
+
+procedure TForm1.GIMBAL_STATUS(msg: TMAVmessage);
+begin
+  YGC_TimestampIn_ms(msg);
+  gridStatus.Cells[1, 1]:=FormatFloat('0.00', MavGetUInt16(msg, 13)/100);
+  gridStatus.Cells[1, 2]:=FormatFloat('0.00', MavGetUInt16(msg, 15)/1000);
+  gridStatus.Cells[1, 3]:=IntToStr(MavGetUInt16(msg, 17));                      {Seconds}
+
+  gridStatus.Cells[1, 4]:=IntToStr(MavGetInt16(msg, 19));                       {Enc_data}
+  gridStatus.Cells[1, 5]:=IntToStr(MavGetInt16(msg, 21));
+  gridStatus.Cells[1, 6]:=IntToStr(MavGetInt16(msg, 23));
+
+  gridStatus.Cells[1, 7]:=FormatFloat('0.00', MavGetInt16(msg, 25)/100);        {StageAngle}
+  gridStatus.Cells[1, 8]:=FormatFloat('0.00', MavGetInt16(msg, 27)/100);
+
+  gridStatus.Cells[1, 9]:=FormatFloat('0.00', MavGetInt16(msg, 29)/100);        {AC_angle}
+  gridStatus.Cells[1, 10]:=FormatFloat('0.00', MavGetInt16(msg, 31)/100);
+  gridStatus.Cells[1, 11]:=FormatFloat('0.00', MavGetInt16(msg, 33)/100);
+
+  gridStatus.Cells[1, 12]:=IntToStr(msg.msgbytes[35]);                          {GyroStable}
+  gridStatus.Cells[1, 13]:=IntToStr(msg.msgbytes[36]);
+  gridStatus.Cells[1, 14]:=IntToStr(msg.msgbytes[37]);
+end;
 
 procedure TForm1.CAM_SERIAL(msg: TMAVmessage);
 var
@@ -410,8 +680,17 @@ procedure TForm1.ReadYGCcameraMessages(msg: TMAVmessage);
 begin
   if (msg.msgid=2) and (msg.targetid=YGCsysID) then begin
     case msg.msgbytes[8] of             {YGC message type}
+      1: if rgYGC_Type.ItemIndex=0 then GIMBAL_GYRO_POWER(msg);
+      2: if rgYGC_Type.ItemIndex=1 then GIMBAL_EULER_ANGLE(msg);
+      3: if rgYGC_Type.ItemIndex=2 then GIMBAL_ACC(msg);
+      5: if rgYGC_Type.ItemIndex=3 then GIMBAL_TEMP_DIFF(msg);
+      6: GIMBAL_STATUS(msg);
       $12: CAM_SERIAL(msg);
       $FE: TEXT_MESSAGE(msg);
+    else
+      Memo1.Lines.Add('Unknown YGC message type: 0x'+
+                      IntToHex(msg.msgbytes[8], 2)+tab2+
+                      ' = '+IntToStr(msg.msgbytes[8]));
     end;
   end;
 end;
@@ -447,6 +726,7 @@ end;
 
 procedure TForm1.ActAsGimbalChecker(var msg: TMAVmessage; list: TStringList);
 begin
+  ClearMessageTables;
   timerYGCHeartbeat.Enabled:=true;
   sleep(100);
   while (UART.LastError=0) and UARTConnected do begin
@@ -455,11 +735,8 @@ begin
       if msg.valid then begin
         ReadYGCcameraMessages(msg);
 
-        ReadGimbalPosition(msg);
-        FillCharts;
-
-
-
+//        ReadGimbalPosition(msg);
+//        FillCharts;
         if cbRecord.Checked then
           RecordMessage(msg, list);
         inc(MessagesReceived);
@@ -584,6 +861,20 @@ begin
   knPanControl.Position:=2048;
 end;
 
+procedure TForm1.btnCommandClick(Sender: TObject);
+var
+  msg: TMAVmessage;
+
+begin
+  if UARTConnected then begin
+    CreateYGCcommandMessage(msg, StrToIntDef(edCommand.Text, $18));
+    if msg.valid then begin
+      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
+        inc(MessagesSent);
+    end;
+  end;
+end;
+
 procedure TForm1.btnVersionClick(Sender: TObject);
 var
   msg: TMAVmessage;
@@ -618,6 +909,16 @@ end;
 procedure TForm1.knPanControlChange(Sender: TObject; AValue: Longint);
 begin
   lblPanControl.Caption:=IntToStr(InvertPanControlPosition(knPanControl.Position));
+end;
+
+procedure TForm1.rgYGC_TypeClick(Sender: TObject);
+begin
+  case rgYGC_Type.ItemIndex of
+    0: WriteHeader_GYRO_POWER;
+    1: WriteHeader_EULER_ANGLE;
+    2: WriteHeader_ACC;
+    3: WriteHeader_TEMP_DIFF;
+  end;
 end;
 
 procedure TForm1.timerFCHeartbeatTimer(Sender: TObject);
