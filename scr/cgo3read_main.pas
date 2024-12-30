@@ -962,9 +962,19 @@ begin
   end;
 end;
 
+function WarningMessageConfirmed: boolean;
+begin
+  result:=false;
+  if MessageDlg('You are trying to erase settings fom the camera.'+LineEnding+
+                'Those settings cannot be restored!'+ LineEnding+
+                'Do you really want to erase settings?', mtWarning, [mbCancel, mbYes], 0)=mrYes then
+    result:=true;
+end;
+
 procedure TForm1.btnFrontErsClick(Sender: TObject);
 begin
-  SendCommand($15);
+  if WarningMessageConfirmed then
+    SendCommand($15);
 end;
 
 procedure TForm1.btnAccCaliClick(Sender: TObject);
@@ -979,7 +989,8 @@ end;
 
 procedure TForm1.btnAccEraseClick(Sender: TObject);
 begin
-  SendCommand($13);
+  if WarningMessageConfirmed then
+    SendCommand($13);
 end;
 
 procedure TForm1.btnVersionClick(Sender: TObject);
@@ -994,7 +1005,8 @@ end;
 
 procedure TForm1.btnYawEncErsClick(Sender: TObject);
 begin
-  SendCommand($0D);
+  if WarningMessageConfirmed then
+    SendCommand($0D);
 end;
 
 procedure TForm1.btnZeroPhaseCaliClick(Sender: TObject);
@@ -1004,7 +1016,8 @@ end;
 
 procedure TForm1.btnZeroPhaseErsClick(Sender: TObject);
 begin
-  SendCommand($11);
+  if WarningMessageConfirmed then
+    SendCommand($11);
 end;
 
 procedure TForm1.cbPortDblClick(Sender: TObject);
