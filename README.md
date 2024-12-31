@@ -11,7 +11,7 @@ There are two main functions:
 
 NOTE: Test telemetry will only be recorded by ST16 in flight logs if flight controller is connected (via SR24) and sends telemetry too.
 
-**WARNING:** Do not erase data from CGO3+. Calibration is not working except PreFrontCalibration. *You will not get back deleted data!*
+**WARNING:** Do not erase data from CGO3+. Calibration is not working except PreFrontCalibration and YawEncoderCalibration. *You will not get back deleted data!*
 
 To compile this tool you need the common units from this repo: https://github.com/h-elsner/common_units
 Also the packages Synapse and Industrial stuff have to be installed (use OPM).
