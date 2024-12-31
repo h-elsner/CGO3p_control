@@ -37,6 +37,7 @@ type
     cbRecord: TCheckBox;
     cbSpeed: TComboBox;
     cbTelemetry: TCheckBox;
+    cbExpert: TCheckBox;
     chPanLineSeries1: TLineSeries;
     chRoll: TChart;
     chRollLineSeries1: TLineSeries;
@@ -45,6 +46,8 @@ type
     chTiltLineSeries1: TLineSeries;
     gridVarious: TStringGrid;
     knPanControl: TmKnob;
+    lblSerial: TLabel;
+    lblSerialNo: TLabel;
     lblPowerCycle: TLabel;
     lblGimbalBootTime: TLabel;
     lblBootTime: TLabel;
@@ -69,6 +72,7 @@ type
     tsYGC: TTabSheet;
     upperPanel: TPanel;
     XMLPropStorage1: TXMLPropStorage;
+
     procedure acCloseExecute(Sender: TObject);
     procedure acConnectExecute(Sender: TObject);
     procedure acDisconnectExecute(Sender: TObject);
@@ -83,6 +87,7 @@ type
     procedure btnYawEncErsClick(Sender: TObject);
     procedure btnZeroPhaseCaliClick(Sender: TObject);
     procedure btnZeroPhaseErsClick(Sender: TObject);
+    procedure cbExpertChange(Sender: TObject);
     procedure cbPortDblClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -100,12 +105,15 @@ type
     function PanModeToInt: uint16;
     function TiltModeToInt: uint16;
 
+    procedure GridPrepare(var grid: TStringGrid; const NumRows: byte);
     procedure WriteHeader_STATUS;
     procedure WriteHeader_GYRO_POWER;
     procedure WriteHeader_EULER_ANGLE;
     procedure WriteHeader_ACC;
     procedure WriteHeader_TEMP_DIFF;
+    procedure WriteHeader_Channel_data;
     procedure ClearMessageTables;
+    function WarningMessageConfirmed: boolean;
 
   public
     procedure ReadMessage(var msg: TMAVmessage);
@@ -124,6 +132,7 @@ type
     procedure GIMBAL_ACC(msg: TMAVmessage);
     procedure GIMBAL_TEMP_DIFF(msg: TMAVmessage);
     procedure GIMBAL_STATUS(msg: TMAVmessage);
+    procedure Channel_data(msg: TMAVmessage);
     procedure CAM_SERIAL(msg: TMAVmessage);
     procedure TEXT_MESSAGE(msg: TMAVmessage);
   end;
@@ -141,7 +150,7 @@ var
 
 const
   AppName='Read CGO3 UART';
-  AppVersion='V0.4 2024-12-30';
+  AppVersion='V0.5 2024-12-31';
 
   tab1=' ';
   tab2='  ';
@@ -173,9 +182,19 @@ begin
   WriteHeader_GYRO_POWER;
 end;
 
+procedure TForm1.GridPrepare(var grid: TStringGrid; const NumRows: byte);
+var
+  i: byte;
+
+begin
+  grid.RowCount:=NumRows;
+  for i:=1 to NumRows-1 do
+    grid.Cells[1, i]:='';
+end;
+
 procedure TForm1.WriteHeader_STATUS;
 begin
-  gridStatus.RowCount:=15;
+  GridPrepare(gridStatus, 15);
   gridStatus.Cells[0, 0]:='STATUS';
   gridStatus.Cells[1, 0]:='Value';
   gridVarious.Cells[1, 0]:='Value';
@@ -197,7 +216,7 @@ end;
 
 procedure TForm1.WriteHeader_GYRO_POWER;
 begin
-  gridVarious.RowCount:=16;
+  GridPrepare(gridVarious, 16);
   gridVarious.Cells[0, 0]:='GYRO_POWER';
   gridVarious.Cells[0, 1]:='GyroHopeX';
   gridVarious.Cells[0, 2]:='GyroHopeY';
@@ -218,7 +237,7 @@ end;
 
 procedure TForm1.WriteHeader_EULER_ANGLE;
 begin
-  gridVarious.RowCount:=16;
+  GridPrepare(gridVarious, 16);
   gridVarious.Cells[0, 0]:='EULER_ANGLE';
   gridVarious.Cells[0, 1]:='AnglehopeX';
   gridVarious.Cells[0, 2]:='AnglehopeY';
@@ -239,7 +258,7 @@ end;
 
 procedure TForm1.WriteHeader_ACC;
 begin
-  gridVarious.RowCount:=16;
+  GridPrepare(gridVarious, 16);
   gridVarious.Cells[0, 0]:='ACC';
   gridVarious.Cells[0, 1]:='AccLowPassX';
   gridVarious.Cells[0, 2]:='AccLowPassY';
@@ -260,7 +279,7 @@ end;
 
 procedure TForm1.WriteHeader_TEMP_DIFF;
 begin
-  gridVarious.RowCount:=14;
+  GridPrepare(gridVarious, 14);
   gridVarious.Cells[0, 0]:='TEMP_DIFF';
   gridVarious.Cells[0, 1]:='HistoryZeroToleranceX';
   gridVarious.Cells[0, 2]:='HistoryZeroToleranceY';
@@ -275,6 +294,20 @@ begin
   gridVarious.Cells[0, 11]:='HeatPower';
   gridVarious.Cells[0, 12]:='TempIntegral';
   gridVarious.Cells[0, 13]:='IMUTemp';
+end;
+
+procedure TForm1.WriteHeader_Channel_data;
+begin
+  GridPrepare(gridVarious, 9);
+  gridVarious.Cells[0, 0]:='Channel_data';
+  gridVarious.Cells[0, 1]:='Tilt mode';
+  gridVarious.Cells[0, 2]:='Tilt';
+  gridVarious.Cells[0, 3]:='Ch3 unused';
+  gridVarious.Cells[0, 4]:='Ch4 reserve';
+  gridVarious.Cells[0, 5]:='Pan mode';
+  gridVarious.Cells[0, 6]:='Pan knob';
+  gridVarious.Cells[0, 7]:='Ch7 unused';
+  gridVarious.Cells[0, 8]:='Ch8 unused';
 end;
 
 procedure TForm1.ClearMessageTables;
@@ -320,17 +353,6 @@ begin
     no:=0;
 end;
 
-procedure SetUInt16ToMsg(var msg: TMavMessage; const pos, value: uint16);
-var
-  v: uint16;
-
-begin
-  v:=value;
-  msg.msgbytes[pos]:=v and $00FF;   {value low}
-  v:=v shr 8;
-  msg.msgbytes[pos+1]:=v and $00FF; {value high}
-end;
-
 procedure TForm1.StopAllTimer;
 begin
   timerFCHeartbeat.Enabled:=false;
@@ -364,109 +386,6 @@ begin
   MessagesReceived:=0;
   ser:=false;
   Boottime:=GetTickCount64;
-end;
-
-procedure CreateStandardPartMsg(var msg: TMAVmessage; const MsgLength: byte);
-begin
-  ClearMAVmessage(msg);
-  msg.msgbytes[0]:=MagicFE;
-  msg.msgbytes[1]:=MsgLength;
-  msg.msglength:=msg.msgbytes[1];
-  msg.msgbytes[3]:=1;                                  {SysId FC}
-end;
-
-procedure SetCRC(var msg: TMAVmessage);
-var
-  crc: uint16;
-
-begin
-  crc:=CRC16MAV(msg, LengthFixPartFE);
-  SetUInt16ToMsg(msg, msg.msglength+LengthFixPartFE, crc);
-  msg.valid:=true;
-end;
-
-procedure CreateFCHeartBeat(var msg: TMavMessage; SequenceNumber: byte);
-begin
-  CreateStandardPartMsg(msg, 5);
-  msg.msgbytes[2]:=SequenceNumber;
-  msg.msgbytes[12]:=1;
-  SetCRC(msg);
-end;
-
-{ YGC_Type from gimbal
-    1: 'GYRO_POWER'
-    2: 'EULER_ANGLE'
-    3: 'ACC'
-    5: 'TEMP_DIFF'
-    6: 'M_STATUS'
-    $12: 'Serial number'
-    $FE: 'Text info'
-
- YGC_Command: short commands: len=2
-      0: Erase all & Button 1                           !!
-
-      1: len=21, default all Bytes 0
-      2: len=21, default all Bytes 0
-      3: len=21, default all Bytes 0
-      4: len=21, default Bytes 11..16 $64, all other 0
-      5: len=21, default Bytes 11..16 $64, all other 0
-
-      6: Read PID
-      7: Save PID
-      8: Reset PID
-      9: IMU temp cali
-    $0A: IMU temp erase                                 !!
-    $0C: Yaw encoder cali
-    $0D: Yaw encoder erase
-    $0F: Pre front cali
-    $10: Zero phase cali
-    $11: Zero phase erase
-    $12: Acc cali
-    $13: Acc erase
-    $14: Front cali
-    $15: Front erase
-    $16: Close motor
-    $17: Open motor
-    $18: Read software
-    $19: Restart GB
-    $1A: High frequency IMU
-    $1E: Motor test
-    $1F: Reson test
-    $20: Vibration test
-    $24: Reaction to heartbeat gimbal, no button assigned
-    $25: High frequency Gyro
-    $26: High frequency Acc
-    $27: Close high frequency
-
-}
-
-procedure CreateYGCcommandMessage(var msg: TMavMessage; const func: byte=$24);
-begin
-  CreateStandardPartMsg(msg, 2);
-  msg.msgbytes[2]:=1;
-  msg.msgbytes[3]:=YGCsysID;                            {SysId YGC}
-  msg.msgbytes[5]:=2;                                   {to Gimbal}
-  msg.msgbytes[7]:=2;                                   {MsgID}
-  msg.msgbytes[8]:=func;                                {YGC_Type}
-  msg.msgbytes[8]:=func;                                {YGC_Command}
-  SetCRC(msg);
-end;
-
-procedure CreateYGCcommandMessageLong(var msg: TMavMessage; const YGCtype: byte);
-var
-  i: integer;
-
-begin
-  CreateStandardPartMsg(msg, 33);                       {Good for 15 int16 values}
-  msg.msgbytes[2]:=1;
-  msg.msgbytes[3]:=YGCsysID;                            {SysId YGC}
-  msg.msgbytes[5]:=2;                                   {to Gimbal}
-  msg.msgbytes[7]:=2;                                   {MsgID}
-  msg.msgbytes[8]:=YGCtype;                             {YGC_Type}
-  if (YGCtype=4) or (YGCtype=5) then
-    for i:=11 to 16 do
-      msg.msgbytes[i]:=$64;                             {100 decimal, placeholder?}
-  SetCRC(msg);
 end;
 
 procedure TForm1.CreateFCControl(var msg: TMavMessage; SequenceNumber: byte);
@@ -556,6 +475,8 @@ begin
     chRollLineSeries1.Clear;
     Memo1.Lines.Clear;
     lblGimbalVersion.Caption:='';
+    lblSerial.Caption:='';
+    lblGimbalBootTime.Caption:='';
     StatusBar1.Panels[0].Text:='0';          {Sent messages}
     StatusBar1.Panels[1].Text:='0';          {Received messages}
     WriteCSVRawHeader(csvlist);
@@ -720,6 +641,16 @@ begin
   gridStatus.Cells[1, 14]:=IntToStr(msg.msgbytes[37]);
 end;
 
+procedure TForm1.Channel_data(msg: TMAVmessage);
+var
+  i: byte;
+
+begin
+  YGC_TimestampIn_ms(msg);
+  for i:=0 to 7 do
+    gridVarious.Cells[1, i+1]:=IntToStr(MavGetUInt16(msg, i*2+13));
+end;
+
 procedure TForm1.CAM_SERIAL(msg: TMAVmessage);
 var
   s: string;
@@ -728,8 +659,7 @@ begin
   if ser then
     exit;
   s:=GetCAM_SERIAL(msg);
-  Memo1.Lines.Add(s);
-  Memo1.Lines.Add('');
+  lblSerial.Caption:=s;
   Caption:=AppName+tab2+s;
   ser:=true;                          {Read serial number only once}
 end;
@@ -770,6 +700,7 @@ begin
         1: if rgYGC_Type.ItemIndex=0 then GIMBAL_GYRO_POWER(msg);
         2: if rgYGC_Type.ItemIndex=1 then GIMBAL_EULER_ANGLE(msg);
         3: if rgYGC_Type.ItemIndex=2 then GIMBAL_ACC(msg);
+        4: if rgYGC_Type.ItemIndex=4 then Channel_data(msg);
         5: if rgYGC_Type.ItemIndex=3 then GIMBAL_TEMP_DIFF(msg);
         6: GIMBAL_STATUS(msg);
         $12: CAM_SERIAL(msg);
@@ -962,46 +893,28 @@ begin
   end;
 end;
 
-function WarningMessageConfirmed: boolean;
+procedure TForm1.cbExpertChange(Sender: TObject);
 begin
-  result:=false;
-  if MessageDlg('You are trying to erase settings fom the camera.'+LineEnding+
-                'Those settings cannot be restored!'+ LineEnding+
-                'Do you really want to erase settings?', mtWarning, [mbCancel, mbYes], 0)=mrYes then
-    result:=true;
+//  btnYawEncCali.Enabled:=false;
+//  btnPreFrontCali.Enabled:=false;
+  btnZeroPhaseCali.Enabled:=false;
+  btnAccCali.Enabled:=false;
+  if cbExpert.Checked then begin
+    btnYawEncCali.Enabled:=true;
+    btnPreFrontCali.Enabled:=true;
+    btnZeroPhaseCali.Enabled:=true;
+    btnAccCali.Enabled:=true;
+  end;
 end;
 
-procedure TForm1.btnFrontErsClick(Sender: TObject);
+function TForm1.WarningMessageConfirmed: boolean;
 begin
-  if WarningMessageConfirmed then
-    SendCommand($15);
-end;
-
-procedure TForm1.btnAccCaliClick(Sender: TObject);
-begin
-  SendCommand($12);
-end;
-
-procedure TForm1.btnPreFrontCaliClick(Sender: TObject);
-begin
-  SendCommand($0F);
-end;
-
-procedure TForm1.btnAccEraseClick(Sender: TObject);
-begin
-  if WarningMessageConfirmed then
-    SendCommand($13);
-end;
-
-procedure TForm1.btnVersionClick(Sender: TObject);
-begin
-  SendCommand($18);
-end;
-
-procedure TForm1.btnYawEncCaliClick(Sender: TObject);
-begin
-  SendCommand($0C);
-end;
+  result:=cbExpert.Checked or
+          (MessageDlg('You are trying to erase some settings from the gimbal.'+
+                      LineEnding+'Those settings cannot be restored!'+
+                      LineEnding+'Do you really want to erase settings?',
+                      mtWarning, [mbCancel, mbYes], 0, mbCancel)=mrYes);
+ end;
 
 procedure TForm1.btnYawEncErsClick(Sender: TObject);
 begin
@@ -1009,15 +922,50 @@ begin
     SendCommand($0D);
 end;
 
+procedure TForm1.btnZeroPhaseErsClick(Sender: TObject);
+begin
+  if WarningMessageConfirmed then
+    SendCommand($11);
+end;
+
+procedure TForm1.btnAccEraseClick(Sender: TObject);
+begin
+  if WarningMessageConfirmed then begin
+     rgYGC_Type.ItemIndex:=2;
+     SendCommand($13);
+  end;
+end;
+
+procedure TForm1.btnFrontErsClick(Sender: TObject);
+begin
+  if WarningMessageConfirmed then begin
+    rgYGC_Type.ItemIndex:=1;
+    SendCommand($15);
+  end;
+end;
+procedure TForm1.btnYawEncCaliClick(Sender: TObject);
+begin
+  SendCommand($0C);
+end;
+
+procedure TForm1.btnPreFrontCaliClick(Sender: TObject);
+begin
+  SendCommand($0F);
+end;
+
 procedure TForm1.btnZeroPhaseCaliClick(Sender: TObject);
 begin
   SendCommand($10);
 end;
 
-procedure TForm1.btnZeroPhaseErsClick(Sender: TObject);
+procedure TForm1.btnAccCaliClick(Sender: TObject);
 begin
-  if WarningMessageConfirmed then
-    SendCommand($11);
+  SendCommand($12);
+end;
+
+procedure TForm1.btnVersionClick(Sender: TObject);
+begin
+  SendCommand($18);
 end;
 
 procedure TForm1.cbPortDblClick(Sender: TObject);
@@ -1049,6 +997,7 @@ begin
     1: WriteHeader_EULER_ANGLE;
     2: WriteHeader_ACC;
     3: WriteHeader_TEMP_DIFF;
+    4: WriteHeader_Channel_data;
   end;
 end;
 
