@@ -19,6 +19,7 @@ type
     acDisconnect: TAction;
     acScanPorts: TAction;
     ActionList1: TActionList;
+    btnVersion: TButton;
     btnZeroPhaseCali: TButton;
     btnYawEncCali: TButton;
     btnAccCali: TButton;
@@ -32,12 +33,10 @@ type
     btnCenter: TButton;
     btnFrontCali: TButton;
     btnFrontErs: TButton;
-    btnVersion: TButton;
     cbPort: TComboBox;
     cbRecord: TCheckBox;
     cbSpeed: TComboBox;
     cbTelemetry: TCheckBox;
-    cbExpert: TCheckBox;
     chPanLineSeries1: TLineSeries;
     chRoll: TChart;
     chRollLineSeries1: TLineSeries;
@@ -46,6 +45,7 @@ type
     chTiltLineSeries1: TLineSeries;
     gridVarious: TStringGrid;
     knPanControl: TmKnob;
+    lblWarning: TLabel;
     lblSerial: TLabel;
     lblSerialNo: TLabel;
     lblPowerCycle: TLabel;
@@ -87,7 +87,6 @@ type
     procedure btnYawEncErsClick(Sender: TObject);
     procedure btnZeroPhaseCaliClick(Sender: TObject);
     procedure btnZeroPhaseErsClick(Sender: TObject);
-    procedure cbExpertChange(Sender: TObject);
     procedure cbPortDblClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -113,7 +112,6 @@ type
     procedure WriteHeader_TEMP_DIFF;
     procedure WriteHeader_Channel_data;
     procedure ClearMessageTables;
-    function WarningMessageConfirmed: boolean;
 
   public
     procedure ReadMessage(var msg: TMAVmessage);
@@ -150,7 +148,7 @@ var
 
 const
   AppName='Read CGO3 UART';
-  AppVersion='V0.5 2024-12-31';
+  AppVersion='V1.0 01/2024';
 
   tab1=' ';
   tab2='  ';
@@ -799,7 +797,7 @@ begin
   msg.valid:=false;
   repeat
     b:=UART.RecvByte(timeout);
-  until (b=MagicFE) or (not UARTConnected);
+  until (b=MagicFE) or (UART.LastError<>0) or (not UARTConnected);
   msg.msgbytes[0]:=b;
   len:=UART.RecvByte(timeout);
   msg.msgbytes[1]:=len;                     {Message lenght}
@@ -893,55 +891,26 @@ begin
   end;
 end;
 
-procedure TForm1.cbExpertChange(Sender: TObject);
-begin
-//  btnYawEncCali.Enabled:=false;
-//  btnPreFrontCali.Enabled:=false;
-  btnZeroPhaseCali.Enabled:=false;
-  btnAccCali.Enabled:=false;
-  if cbExpert.Checked then begin
-    btnYawEncCali.Enabled:=true;
-    btnPreFrontCali.Enabled:=true;
-    btnZeroPhaseCali.Enabled:=true;
-    btnAccCali.Enabled:=true;
-  end;
-end;
-
-function TForm1.WarningMessageConfirmed: boolean;
-begin
-  result:=cbExpert.Checked or
-          (MessageDlg('You are trying to erase some settings from the gimbal.'+
-                      LineEnding+'Those settings cannot be restored!'+
-                      LineEnding+'Do you really want to erase settings?',
-                      mtWarning, [mbCancel, mbYes], 0, mbCancel)=mrYes);
- end;
-
 procedure TForm1.btnYawEncErsClick(Sender: TObject);
 begin
-  if WarningMessageConfirmed then
-    SendCommand($0D);
+  SendCommand($0D);
 end;
 
 procedure TForm1.btnZeroPhaseErsClick(Sender: TObject);
 begin
-  if WarningMessageConfirmed then
-    SendCommand($11);
+  SendCommand($11);
 end;
 
 procedure TForm1.btnAccEraseClick(Sender: TObject);
 begin
-  if WarningMessageConfirmed then begin
-     rgYGC_Type.ItemIndex:=2;
-     SendCommand($13);
-  end;
+  rgYGC_Type.ItemIndex:=2;
+  SendCommand($13);
 end;
 
 procedure TForm1.btnFrontErsClick(Sender: TObject);
 begin
-  if WarningMessageConfirmed then begin
-    rgYGC_Type.ItemIndex:=1;
-    SendCommand($15);
-  end;
+  rgYGC_Type.ItemIndex:=1;
+  SendCommand($15);
 end;
 procedure TForm1.btnYawEncCaliClick(Sender: TObject);
 begin
@@ -977,6 +946,8 @@ procedure TForm1.FormActivate(Sender: TObject);
 begin
   StopAllTimer;
   knPanControl.Position:=2048;
+  if rgYGC_Type.ItemIndex=4 then       {Do not remember Channel_data, it's rare}
+    rgYGC_Type.ItemIndex:=0;
   acScanPortsExecute(self);
 end;
 
