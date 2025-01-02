@@ -17,20 +17,20 @@ object Form1: TForm1
   LCLVersion = '3.7.0.0'
   object upperPanel: TPanel
     Left = 0
-    Height = 98
+    Height = 96
     Top = 0
     Width = 840
     Align = alTop
-    ClientHeight = 98
+    ClientHeight = 96
     ClientWidth = 840
     TabOrder = 0
     object cbPort: TComboBox
       Left = 16
-      Height = 28
+      Height = 25
       Hint = 'Select serial port'
       Top = 16
       Width = 152
-      ItemHeight = 0
+      ItemHeight = 17
       ItemIndex = 0
       Items.Strings = (
         '/dev/ttyUSB0'
@@ -46,11 +46,11 @@ object Form1: TForm1
     end
     object cbSpeed: TComboBox
       Left = 16
-      Height = 28
+      Height = 25
       Hint = 'Select baud rate'
       Top = 56
       Width = 152
-      ItemHeight = 0
+      ItemHeight = 17
       Items.Strings = (
         '4800'
         '9600'
@@ -91,9 +91,9 @@ object Form1: TForm1
     end
     object cbRecord: TCheckBox
       Left = 336
-      Height = 23
+      Height = 21
       Top = 16
-      Width = 182
+      Width = 175
       Caption = 'Record received messages'
       Checked = True
       State = cbChecked
@@ -102,8 +102,8 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Height = 18
-    Top = 636
+    Height = 23
+    Top = 631
     Width = 840
     Panels = <    
       item
@@ -119,8 +119,8 @@ object Form1: TForm1
   end
   object PageControl: TPageControl
     Left = 0
-    Height = 538
-    Top = 98
+    Height = 535
+    Top = 96
     Width = 840
     ActivePage = tsYGC
     Align = alClient
@@ -128,8 +128,8 @@ object Form1: TForm1
     TabOrder = 2
     object tsFC: TTabSheet
       Caption = 'As flight controller'
-      ClientHeight = 508
-      ClientWidth = 830
+      ClientHeight = 505
+      ClientWidth = 832
       object knPanControl: TmKnob
         Left = 208
         Height = 60
@@ -156,8 +156,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 104
-        ClientWidth = 46
+        ClientHeight = 99
+        ClientWidth = 44
         ItemIndex = 0
         Items.Strings = (
           'F'
@@ -181,8 +181,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 104
-        ClientWidth = 46
+        ClientHeight = 99
+        ClientWidth = 44
         ItemIndex = 0
         Items.Strings = (
           'A'
@@ -204,9 +204,9 @@ object Form1: TForm1
       end
       object lblPanControl: TLabel
         Left = 224
-        Height = 16
+        Height = 17
         Top = 16
-        Width = 32
+        Width = 28
         Caption = '2048'
       end
       object btnCenter: TButton
@@ -221,9 +221,9 @@ object Form1: TForm1
       end
       object cbTelemetry: TCheckBox
         Left = 8
-        Height = 23
+        Height = 21
         Top = 160
-        Width = 142
+        Width = 130
         Caption = 'Send test telemetry'
         TabOrder = 5
       end
@@ -231,7 +231,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 8
-        Width = 535
+        Width = 537
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -258,7 +258,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 208
-        Width = 535
+        Width = 537
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -285,7 +285,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 416
-        Width = 535
+        Width = 537
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -310,26 +310,26 @@ object Form1: TForm1
       end
       object lblGimbalVersion: TLabel
         Left = 32
-        Height = 16
+        Height = 17
         Top = 199
-        Width = 64
+        Width = 63
         Caption = 'Gimbal FW'
       end
     end
     object tsYGC: TTabSheet
       Caption = 'As gimbal checker'
-      ClientHeight = 508
-      ClientWidth = 830
+      ClientHeight = 505
+      ClientWidth = 832
       ImageIndex = 0
       object panelRight: TPanel
-        Left = 704
-        Height = 410
-        Top = 98
+        Left = 706
+        Height = 373
+        Top = 132
         Width = 126
         Align = alRight
         BevelColor = clRed
         BevelWidth = 2
-        ClientHeight = 410
+        ClientHeight = 373
         ClientWidth = 126
         ParentBackground = False
         ParentColor = False
@@ -401,9 +401,9 @@ object Form1: TForm1
         end
         object lblPowerCycle: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 271
-          Width = 97
+          Width = 96
           Caption = 'Power cycle cam'
         end
         object btnAccCali: TButton
@@ -419,16 +419,16 @@ object Form1: TForm1
       end
       object panelYGCTop: TPanel
         Left = 0
-        Height = 98
+        Height = 132
         Top = 0
-        Width = 830
+        Width = 832
         Align = alTop
-        ClientHeight = 98
-        ClientWidth = 830
+        ClientHeight = 132
+        ClientWidth = 832
         TabOrder = 1
         object Memo1: TMemo
-          Left = 432
-          Height = 96
+          Left = 434
+          Height = 130
           Top = 1
           Width = 397
           Align = alRight
@@ -440,37 +440,37 @@ object Form1: TForm1
         end
         object lblBootTime: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 40
-          Width = 78
+          Width = 77
           Caption = 'Boot time [s]:'
         end
         object lblGimbalBootTime: TLabel
           Left = 128
-          Height = 16
+          Height = 17
           Top = 40
-          Width = 71
+          Width = 68
           Caption = 'Time stamp'
         end
         object lblSerialNo: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 64
-          Width = 86
+          Width = 84
           Caption = 'Serial number:'
         end
         object lblSerial: TLabel
           Left = 128
-          Height = 16
+          Height = 17
           Top = 64
           Width = 95
           Caption = 'Gimbal serial no'
         end
         object lblWarning: TLabel
           Left = 8
-          Height = 19
+          Height = 21
           Top = 8
-          Width = 360
+          Width = 364
           Caption = 'No warranty. You use this tool on your own risk!'
           Font.Color = clRed
           Font.Height = -16
@@ -480,8 +480,8 @@ object Form1: TForm1
       end
       object gridStatus: TStringGrid
         Left = 8
-        Height = 393
-        Top = 112
+        Height = 358
+        Top = 144
         Width = 280
         Anchors = [akTop, akLeft, akBottom]
         ColCount = 2
@@ -493,8 +493,8 @@ object Form1: TForm1
       end
       object gridVarious: TStringGrid
         Left = 296
-        Height = 393
-        Top = 112
+        Height = 358
+        Top = 144
         Width = 272
         Anchors = [akTop, akLeft, akBottom]
         ColCount = 2
@@ -507,7 +507,7 @@ object Form1: TForm1
       object rgYGC_Type: TRadioGroup
         Left = 568
         Height = 168
-        Top = 112
+        Top = 144
         Width = 128
         AutoFill = True
         Caption = 'Show 2nd message'
@@ -518,8 +518,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 151
-        ClientWidth = 126
+        ClientHeight = 146
+        ClientWidth = 124
         ItemIndex = 0
         Items.Strings = (
           'GYRO_POWER'
@@ -532,9 +532,9 @@ object Form1: TForm1
         TabOrder = 4
       end
       object btnVersion: TButton
-        Left = 582
+        Left = 584
         Height = 25
-        Top = 300
+        Top = 320
         Width = 99
         Caption = 'SW versions'
         TabOrder = 5
