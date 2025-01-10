@@ -45,9 +45,13 @@ resourcestring                                     {english}
   rsInUse='satellites in use';
   rsVisible='satellites visible';
   rsSaved=' saved';
+  rsDisconnected='Disconnected';
 
 
   hntGeoFence='Maximum distance from home point in Smart Mode.';
   hntHeightLimit='Maximum elevation above home point in Smart and Angle mode.';
+
+  msgPropellerRemoved='I have removed all propellers';
+  hntEnableTesting='Turn motors only if you have removed the propellers!';
 
 

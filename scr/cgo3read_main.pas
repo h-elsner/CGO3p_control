@@ -83,6 +83,8 @@ type
     btnGeoFence: TButton;
     btnHeightLimit: TButton;
     btnDisableNFZ: TButton;
+    btnEnableTesting: TButton;
+    btnTurnAll: TButton;
     cbPort: TComboBox;
     cbRecord: TCheckBox;
     cbSensor: TCheckBox;
@@ -95,6 +97,8 @@ type
     gbSysStatus: TGroupBox;
     gbAcc: TGroupBox;
     gbGyro: TGroupBox;
+    gbMotors: TGroupBox;
+    lblEnableTesting: TLabel;
     lblOK: TLabel;
     lblFCtime: TLabel;
     lblFCtimeGPS: TLabel;
@@ -199,16 +203,19 @@ type
     procedure btnGeoFenceClick(Sender: TObject);
     procedure btnHeightLimitClick(Sender: TObject);
     procedure btnPreFrontCaliClick(Sender: TObject);
+    procedure btnTurnAllClick(Sender: TObject);
     procedure btnVersionClick(Sender: TObject);
     procedure btnYawEncCaliClick(Sender: TObject);
     procedure btnYawEncErsClick(Sender: TObject);
     procedure btnZeroPhaseCaliClick(Sender: TObject);
     procedure btnZeroPhaseErsClick(Sender: TObject);
+    procedure btnEnableTestingClick(Sender: TObject);
     procedure cbPortDblClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure knPanControlChange(Sender: TObject; AValue: Longint);
+    procedure pcMainChange(Sender: TObject);
     procedure rgYGC_TypeClick(Sender: TObject);
     procedure SatPolarAfterDrawBackWall(ASender: TChart; ACanvas: TCanvas;
       const ARect: TRect);
@@ -218,6 +225,7 @@ type
     procedure timerSensorsTimer(Sender: TObject);
     procedure timerTelemetryTimer(Sender: TObject);
     procedure timerYGCcommandLongTimer(Sender: TObject);
+
   private
     procedure StopAllTimer;
     procedure ResetSensorsStatus;
@@ -356,6 +364,9 @@ begin
   lblFCtimeGPS.Hint:=hntFCtime;
   lblFCtime.Caption:=capFCtime;
   lblFCtime.Hint:=hntFCtime;
+
+  gbMotors.Hint:=hntEnableTesting;
+  lblEnableTesting.Caption:=hntEnableTesting;
 
   ResetSensorsStatus;
   PrepareSatSNRBarChart;
@@ -1273,6 +1284,8 @@ var
 
 begin
   ser:=false;
+  btnTurnAll.Enabled:=false;
+
   BarSatSNR.Clear;
   SatPolarSeries.Clear;
   ResetSensorsStatus;     {notwendig?}
@@ -1578,7 +1591,7 @@ begin
   btnHeightLimit.Enabled:=UARTConnected;
   btnDisableNFZ.Enabled:=UARTConnected;
   btnEnableNFZ.Enabled:=UARTConnected;
-  StatusBar1.Panels[2].Text:='Disconnected';
+  StatusBar1.Panels[2].Text:=rsDisconnected;
 end;
 
 procedure TForm1.acSaveProtExecute(Sender: TObject);
@@ -1680,6 +1693,17 @@ begin
   SendYGCCommand($11);
 end;
 
+procedure TForm1.btnEnableTestingClick(Sender: TObject);
+begin
+  btnTurnAll.Enabled:=false;
+  if UARTconnected then begin
+    if MessageDlg('Please confirm', msgPropellerRemoved,
+                  mtConfirmation, [mbYes, mbNo], 0, mbNo)=mrYes then begin
+      btnTurnAll.Enabled:=true;
+    end;
+  end;
+end;
+
 procedure TForm1.btnAccEraseClick(Sender: TObject);
 begin
   rgYGC_Type.ItemIndex:=2;
@@ -1720,6 +1744,23 @@ begin
   SendYGCCommand($0F);
 end;
 
+procedure TForm1.btnTurnAllClick(Sender: TObject);
+var
+  MotorCommand: TCommandLong;
+  msg: TMAVmessage;
+
+begin
+  if UARTconnected then begin
+    MotorCommand:=Default(TCommandLong);
+    MotorCommand.commandID:=209;
+    MotorCommand.params[0]:=255.0;                     {Motor ID; 255 for all}
+    MotorCommand.params[2]:=29.0;                      {RPM}
+    MotorCommand.params[3]:=2000.0;                    {Duration}
+    CreateGUI_COMMAND_LONG(msg, motorcommand);
+    SendUARTMessage(msg, LengthFixPartBC);
+  end;
+end;
+
 procedure TForm1.btnZeroPhaseCaliClick(Sender: TObject);
 begin
   SendYGCCommand($10);
@@ -1758,6 +1799,13 @@ end;
 procedure TForm1.knPanControlChange(Sender: TObject; AValue: Longint);
 begin
   lblPanControl.Caption:=IntToStr(InvertPanControlPosition(knPanControl.Position));
+end;
+
+procedure TForm1.pcMainChange(Sender: TObject);
+begin
+  StopAllTimer;
+  DisconnectUART;
+  StatusBar1.Panels[2].Text:=rsDisconnected;
 end;
 
 procedure TForm1.rgYGC_TypeClick(Sender: TObject);
