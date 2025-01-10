@@ -91,6 +91,7 @@ type
     cbSpeed: TComboBox;
     cbTelemetry: TCheckBox;
     cbLimitMsg: TCheckBox;
+    cbHighRPM: TCheckBox;
     gbMag: TGroupBox;
     gbOrientation: TGroupBox;
     gbBaro: TGroupBox;
@@ -98,6 +99,7 @@ type
     gbAcc: TGroupBox;
     gbGyro: TGroupBox;
     gbMotors: TGroupBox;
+    picMotors: TImage;
     lblEnableTesting: TLabel;
     lblOK: TLabel;
     lblFCtime: TLabel;
@@ -216,6 +218,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure knPanControlChange(Sender: TObject; AValue: Longint);
     procedure pcMainChange(Sender: TObject);
+    procedure picMotorsMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure rgYGC_TypeClick(Sender: TObject);
     procedure SatPolarAfterDrawBackWall(ASender: TChart; ACanvas: TCanvas;
       const ARect: TRect);
@@ -298,7 +302,7 @@ var
 
 
 const
-  AppVersion='V1.2 2024-01-10';
+  AppVersion='V1.3 2024-01-11';
 
   tab1=' ';
   tab2='  ';
@@ -307,6 +311,7 @@ const
   timeout=100;
   defaultbaud=115200;
   wait=5;
+  highRPM=100;
 
   AccMin=850;          {Threshold for accelerometer magnitude (z-axis problem}
   gzoom='16';
@@ -342,6 +347,7 @@ begin
   WriteHeader_STATUS;
   WriteHeader_GYRO_POWER;
   WriteGUIvalueListHeader;
+  cbPort.Hint:=hntPort;
 
   lblGeoFenceVal.Hint:=hntGeoFence;
   speGeoFence.Hint:=hntGeoFence;
@@ -1753,9 +1759,11 @@ begin
   if UARTconnected then begin
     MotorCommand:=Default(TCommandLong);
     MotorCommand.commandID:=209;
-    MotorCommand.params[0]:=255.0;                     {Motor ID; 255 for all}
-    MotorCommand.params[2]:=29.0;                      {RPM}
-    MotorCommand.params[3]:=2000.0;                    {Duration}
+    MotorCommand.params[0]:=255;                     {Motor ID; 255 for all}
+    MotorCommand.params[2]:=29;                      {RPM}
+    if cbHighRPM.Checked then
+      MotorCommand.params[2]:=highRPM;
+    MotorCommand.params[3]:=2500;                    {Duration}
     CreateGUI_COMMAND_LONG(msg, motorcommand);
     SendUARTMessage(msg, LengthFixPartBC);
   end;
@@ -1806,6 +1814,74 @@ begin
   StopAllTimer;
   DisconnectUART;
   StatusBar1.Panels[2].Text:=rsDisconnected;
+end;
+
+{Up to now I had the impression that the motor numbering is counterclockwise.
+ This was also my interpretation of the motor error codes in Motor_status in
+ flight logs. Also the error beep code support this view.
+
+The motor numbers in the COMMAND_LONG message clockwise starting with 1 front right.
+This means the motor numbers in command message are wrong assigned? }
+
+procedure TForm1.picMotorsMouseDown(Sender: TObject; Button: TMouseButton;
+                                    Shift: TShiftState; X, Y: Integer);
+var
+  hpos, vpos: byte;
+  MotorCommand: TCommandLong;
+  msg: TMAVmessage;
+
+begin
+  MotorCommand:=Default(TCommandLong);
+  MotorCommand.commandID:=209;
+  MotorCommand.params[2]:=29;                            {RPM}
+  if cbHighRPM.Checked then
+    MotorCommand.params[2]:=highRPM;
+  MotorCommand.params[3]:=1000;                          {Duration}
+
+  if x>240 then vpos:=4 else
+    if x>162 then vpos:=3 else
+      if x>90 then vpos:=2 else
+        vpos:=1;
+  if y>170 then hpos:=3 else
+    if y>70 then hpos:=2 else
+      hpos:=1;
+  if hpos=1 then begin
+    if (vpos=1) or (vpos=2) then begin
+      StatusBar1.Panels[2].Text:='Motor 1 selected (A-CW)';
+      MotorCommand.params[0]:=6;                         {Numbering CCW used}
+    end;
+    if (vpos=3) or (vpos=4) then begin
+      StatusBar1.Panels[2].Text:='Motor 6 selected (B-CCW)';
+      MotorCommand.params[0]:=1;
+    end;
+  end else begin
+    if hpos=2 then begin
+      if vpos=1 then begin
+        StatusBar1.Panels[2].Text:='Motor 2 selected (B-CCW)';
+        MotorCommand.params[0]:=5;
+      end;
+      if vpos=4 then begin
+        StatusBar1.Panels[2].Text:='Motor 5 selected (A-CW)';
+        MotorCommand.params[0]:=2;
+      end;
+    end else begin
+      if hpos=3 then begin
+        if (vpos=1) or (vpos=2) then begin
+          StatusBar1.Panels[2].Text:='Motor 3 selected (A-CW)';
+          MotorCommand.params[0]:=4;
+        end;
+        if (vpos=3) or (vpos=4) then begin
+          StatusBar1.Panels[2].Text:='Motor 4 selected (B-CCW)';
+          MotorCommand.params[0]:=3;
+        end;
+      end;
+    end;
+  end;
+
+  if btnTurnAll.Enabled and UARTconnected then begin
+    CreateGUI_COMMAND_LONG(msg, motorcommand);
+    SendUARTMessage(msg, LengthFixPartBC);
+  end;
 end;
 
 procedure TForm1.rgYGC_TypeClick(Sender: TObject);

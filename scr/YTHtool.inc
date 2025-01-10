@@ -27,6 +27,7 @@ resourcestring                                     {english}
   hntSensor='Save received data messages to a binary file like Sensor files in flight logs';
   capSaveProt='&Save text';
   hntSaveProt='Save list of text messages to text file';
+  hntPort='In case of connection Problems unplug and plug USB cable.'+lineending+'Double click to update port list.';
 
   capSaveChart='Save chart';
   hntSaveChart='Save snapshot of the diagram as picture';
@@ -51,7 +52,7 @@ resourcestring                                     {english}
   hntGeoFence='Maximum distance from home point in Smart Mode.';
   hntHeightLimit='Maximum elevation above home point in Smart and Angle mode.';
 
-  msgPropellerRemoved='I have removed all propellers';
-  hntEnableTesting='Turn motors only if you have removed the propellers!';
+  msgPropellerRemoved='I have removed all propellers.';
+  hntEnableTesting='Test motors only without propellers!';
 
 
