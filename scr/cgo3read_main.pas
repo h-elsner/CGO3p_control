@@ -48,8 +48,10 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  Buttons, ActnList, Menus, Process, XMLPropStorage, ComCtrls, Grids, TAGraph,
-  TASeries, synaser, MKnob, mav_def, mav_msg;
+  lclintf, Buttons, ActnList, Menus, Process, XMLPropStorage, ComCtrls, Grids,
+  ValEdit, Spin, TAGraph, TATypes, TASeries, TAChartUtils, TAGeometry,
+  TARadialSeries, TASources, synaser, MKnob,
+  mav_def, mav_msg, msg57;
 
 type
 
@@ -60,7 +62,10 @@ type
     acClose: TAction;
     acDisconnect: TAction;
     acScanPorts: TAction;
+    acSaveProt: TAction;
     ActionList1: TActionList;
+    btnEnableNFZ: TButton;
+    btnSaveMsg: TBitBtn;
     btnVersion: TButton;
     btnZeroPhaseCali: TButton;
     btnYawEncCali: TButton;
@@ -75,10 +80,44 @@ type
     btnCenter: TButton;
     btnFrontCali: TButton;
     btnFrontErs: TButton;
+    btnGeoFence: TButton;
+    btnHeightLimit: TButton;
+    btnDisableNFZ: TButton;
     cbPort: TComboBox;
     cbRecord: TCheckBox;
+    cbSensor: TCheckBox;
     cbSpeed: TComboBox;
     cbTelemetry: TCheckBox;
+    cbLimitMsg: TCheckBox;
+    gbMag: TGroupBox;
+    gbOrientation: TGroupBox;
+    gbBaro: TGroupBox;
+    gbSysStatus: TGroupBox;
+    gbAcc: TGroupBox;
+    gbGyro: TGroupBox;
+    lblOK: TLabel;
+    lblFCtime: TLabel;
+    lblFCtimeGPS: TLabel;
+    lbIGPSOK: TLabel;
+    lbIIMUOK: TLabel;
+    lbIRSOK: TLabel;
+    lbISonar: TLabel;
+    lblGeoFenceVal: TLabel;
+    lblHeightLimit: TLabel;
+    lblGeoFence: TLabel;
+    lblCurrentValue: TLabel;
+    lblHeightLimitVal: TLabel;
+    lblNewValue: TLabel;
+    lblSatUsed: TLabel;
+    lblNotUsed: TLabel;
+    GUIpanel: TPanel;
+    lblSysTime: TLabel;
+    SensorLEDPanel: TPanel;
+    SatPolarSeries: TPolarSeries;
+    SatPolarSource: TListChartSource;
+    SatPolar: TChart;
+    ChartSatSNR: TChart;
+    BarSatSNR: TBarSeries;
     chPanLineSeries1: TLineSeries;
     chRoll: TChart;
     chRollLineSeries1: TLineSeries;
@@ -86,6 +125,11 @@ type
     chPan: TChart;
     chTiltLineSeries1: TLineSeries;
     gridVarious: TStringGrid;
+    gbDeviceInfo: TGroupBox;
+    gbGeoFence: TGroupBox;
+    gbPosition: TGroupBox;
+    gbVelocity: TGroupBox;
+    gbMessages: TGroupBox;
     knPanControl: TmKnob;
     lblWarning: TLabel;
     lblSerial: TLabel;
@@ -95,16 +139,33 @@ type
     lblBootTime: TLabel;
     lblGimbalVersion: TLabel;
     lblPanControl: TLabel;
-    Memo1: TMemo;
-    PageControl: TPageControl;
+    GIMBALtext: TMemo;
+    GUItext: TMemo;
+    SatSNRBarSource: TListChartSource;
+    pcMain: TPageControl;
+    pcGUI: TPageControl;
     panelRight: TPanel;
     panelYGCTop: TPanel;
     rgYGC_Type: TRadioGroup;
     rgPanMode: TRadioGroup;
     rgTiltMode: TRadioGroup;
     SaveDialog1: TSaveDialog;
+    shapeGPSOK: TShape;
+    shapeIMUOK: TShape;
+    shapeNotUsed: TShape;
+    shapeRSOK: TShape;
+    shapeSonar: TShape;
+    shapeUsed: TShape;
+    speGeoFence: TSpinEdit;
+    speHeightLimit: TSpinEdit;
     StatusBar1: TStatusBar;
     gridStatus: TStringGrid;
+    timerSensors: TTimer;
+    tsSettings: TTabSheet;
+    tsGPSinfo: TTabSheet;
+    tsSensorInfo: TTabSheet;
+    timerGUI: TTimer;
+    tsGUI: TTabSheet;
     timerYGCcommandLong: TTimer;
     timerFCCommand: TTimer;
     timerTelemetry: TTimer;
@@ -113,16 +174,30 @@ type
     tsFC: TTabSheet;
     tsYGC: TTabSheet;
     upperPanel: TPanel;
+    vleMag: TValueListEditor;
+    vleOrientation: TValueListEditor;
+    vleBaro: TValueListEditor;
+    vlePosition: TValueListEditor;
+    vleSystem: TValueListEditor;
+    vleVelocity: TValueListEditor;
+    vleSysStatus: TValueListEditor;
+    vleAcc: TValueListEditor;
+    vleGyro: TValueListEditor;
     XMLPropStorage1: TXMLPropStorage;
 
     procedure acCloseExecute(Sender: TObject);
     procedure acConnectExecute(Sender: TObject);
     procedure acDisconnectExecute(Sender: TObject);
+    procedure acSaveProtExecute(Sender: TObject);
     procedure acScanPortsExecute(Sender: TObject);
     procedure btnAccCaliClick(Sender: TObject);
     procedure btnAccEraseClick(Sender: TObject);
     procedure btnCenterClick(Sender: TObject);
+    procedure btnDisableNFZClick(Sender: TObject);
+    procedure btnEnableNFZClick(Sender: TObject);
     procedure btnFrontErsClick(Sender: TObject);
+    procedure btnGeoFenceClick(Sender: TObject);
+    procedure btnHeightLimitClick(Sender: TObject);
     procedure btnPreFrontCaliClick(Sender: TObject);
     procedure btnVersionClick(Sender: TObject);
     procedure btnYawEncCaliClick(Sender: TObject);
@@ -135,12 +210,17 @@ type
     procedure FormCreate(Sender: TObject);
     procedure knPanControlChange(Sender: TObject; AValue: Longint);
     procedure rgYGC_TypeClick(Sender: TObject);
+    procedure SatPolarAfterDrawBackWall(ASender: TChart; ACanvas: TCanvas;
+      const ARect: TRect);
     procedure timerFCCommandTimer(Sender: TObject);
     procedure timerFCHeartbeatTimer(Sender: TObject);
+    procedure timerGUITimer(Sender: TObject);
+    procedure timerSensorsTimer(Sender: TObject);
     procedure timerTelemetryTimer(Sender: TObject);
     procedure timerYGCcommandLongTimer(Sender: TObject);
   private
     procedure StopAllTimer;
+    procedure ResetSensorsStatus;
     procedure CreateFCControl(var msg: TMavMessage; SequenceNumber: byte);
     procedure CreateTelemetry5GHz(var msg: TMavMessage; SequenceNumber: byte);
     function PanModeToInt: uint16;
@@ -153,18 +233,36 @@ type
     procedure WriteHeader_ACC;
     procedure WriteHeader_TEMP_DIFF;
     procedure WriteHeader_Channel_data;
+    procedure WriteGUIvalueListHeader;
     procedure ClearMessageTables;
+    procedure ClearGUI;
+    procedure FillGUIPosition24(const sats: TGPSdata);
+    procedure FillGUIPosition33(const sats: TGPSdata);
+    procedure FillGUIIMU(const data: THWstatusData);
+    procedure FillGUI_SYS_STATUS(const msg: TMAVmessage; var data: TGPSdata);
+    procedure FillSENSOR_OFFSETS(const data: THWstatusData);
+    procedure FillCharts;
+    procedure FillAttitude(data: TAttitudeData);
+    procedure FillEKF_STATUS_REPORT(data: TAttitudeData);
+
+    procedure CreateSatSNRBarChart(const sats: TGPSdata);
+    procedure CreateSatPolarDiagram(const sats: TGPSdata);
+    procedure PrepareSatSNRBarChart;                  {My settings for the SNR chart}
+    procedure PreparePolarAxes(AChart: TChart; AMax: Double);
+    procedure PrepareSatPolarDiagram;
+    procedure DrawPolarAxes(AChart: TChart; AMax, ADelta: Double; MeasurementUnit: string);
 
   public
-    procedure ReadMessage(var msg: TMAVmessage);
+    procedure ReadMessage_FE(var msg: TMAVmessage);
     procedure ReadGimbalPosition(msg: TMAVmessage);
-    procedure RecordMessage(msg: TMAVmessage; list: TStringList);
-    procedure FillCharts;
+    procedure ReadMessage_BC(var msg: TMAVmessage);
+    procedure ReadGUIMessages(msg: TMAVmessage);
+    procedure RecordMessage(msg: TMAVmessage; list: TStringList; LengthFixPart: byte);
     procedure ActAsFlightController(var msg: TMAVmessage; list: TStringList);
     procedure ActAsGimbalChecker(var msg: TMAVmessage; list: TStringList);
+    procedure ActAsGUI(var msg: TMAVmessage; list: TStringList);
     procedure ReadYGCcameraMessages(msg: TMAVmessage);
     procedure SendYGCHeartbeat;
-
 
     function YGC_TimestampIn_ms(msg: TMAVmessage): integer;
     procedure GIMBAL_GYRO_POWER(msg: TMAVmessage);
@@ -177,10 +275,13 @@ type
     procedure TEXT_MESSAGE(msg: TMAVmessage);
   end;
 
+  {$I YTHtool.inc}
+
 var
   Form1: TForm1;
   UART: TBlockSerial;
   UARTConnected, ser: boolean;
+  SensorStream: TMemoryStream;
 
   boottime: UInt64;
   SequNumberTransmit, SequNumberReceived: byte;
@@ -189,8 +290,7 @@ var
 
 
 const
-  AppName='Read CGO3 UART';
-  AppVersion='V1.0 01/2024';
+  AppVersion='V1.1 01/2024';
 
   tab1=' ';
   tab2='  ';
@@ -198,6 +298,17 @@ const
   maxPorts=10;
   timeout=100;
   defaultbaud=115200;
+  wait=5;
+  AccMin=850;                          {Threshold for accelerometer magnitude (z-axis problem}
+  gzoom='16';
+
+  clSatUsed=clGreen;
+  clSatVisible=$004080FF;
+  clPolarLabel=clSkyBlue;
+  clDataSerie1=clRed;
+  clSensorOK=clMoneyGreen;
+  clSensorMiss=$000065FF;
+  PolarSatSize=8;
 
 {$IFDEF WINDOWS}
   default_port='COM6';
@@ -214,12 +325,56 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  Caption:=AppName+tab2+AppVersion;
+  Caption:=Application.Title+tab2+AppVersion;
   cbSpeed.Text:=IntToStr(defaultbaud);
   UARTconnected:=false;
-  Memo1.Lines.Clear;
+  GIMBALtext.Text:='';
+  GUItext.Text:='';
   WriteHeader_STATUS;
   WriteHeader_GYRO_POWER;
+  WriteGUIvalueListHeader;
+
+  lblGeoFenceVal.Hint:=hntGeoFence;
+  speGeoFence.Hint:=hntGeoFence;
+  lblGeoFence.Hint:=hntGeoFence;
+  lblHeightLimitVal.Hint:=hntHeightLimit;
+  speHeightLimit.Hint:=hntHeightLimit;
+  lblHeightLimit.Hint:=hntHeightLimit;
+  SatPolar.Hint:=hntPolar;
+  ChartSatSNR.Hint:=hntSatSNR;
+  lblSysTime.Hint:=hntTime;
+  btnClose.Hint:=hntClose;
+  StatusBar1.Hint:=hntStatusBar;
+  acSaveProt.Caption:=capSaveProt;
+  acSaveProt.Hint:=hntSaveProt;
+  cbRecord.Caption:=capRecord;
+  cbRecord.Hint:=hntRecord;
+  cbSensor.Caption:=capSensor;
+  cbSensor.Hint:=hntSensor;
+  lblFCtimeGPS.Caption:=capFCtime;
+  lblFCtimeGPS.Hint:=hntFCtime;
+  lblFCtime.Caption:=capFCtime;
+  lblFCtime.Hint:=hntFCtime;
+
+  ResetSensorsStatus;
+  PrepareSatSNRBarChart;
+  PrepareSatPolarDiagram;
+  PreparePolarAxes(SatPolar, 90);
+  BarSatSNR.Clear;
+  SatPolarSeries.Clear;
+
+  shapeUsed.Pen.Color:=clSatUsed;
+  shapeNotUsed.Pen.Color:=clSatVisible;
+
+end;
+
+{ http://wiki.openstreetmap.org/wiki/Browsing
+ https://www.openstreetmap.org/?mlat=49.9676&mlon=9.9673#map=10/49.9676/9.9673&layers=Q}
+
+function URLosm(lat, lon: string): string;       {URL für Koordinate in OpenStreetMap}
+begin
+  result:=osmURL+'?mlat='+lat+'&mlon='+lon+'#map='+
+          gzoom+'/'+lat+'/'+lon+'&layers=S';
 end;
 
 procedure TForm1.GridPrepare(var grid: TStringGrid; const NumRows: byte);
@@ -350,6 +505,76 @@ begin
   gridVarious.Cells[0, 8]:='Ch8 unused';
 end;
 
+procedure SetXYZ(var vle: TValueListEditor; const MeasurementUnit: shortstring='');
+begin
+  vle.Cells[0, 1]:='X '+MeasurementUnit;
+  vle.Cells[0, 2]:='Y '+MeasurementUnit;
+  vle.Cells[0, 3]:='Z '+MeasurementUnit;
+end;
+
+procedure TForm1.WriteGUIvalueListHeader;
+begin
+  vlePosition.Cells[0, 1]:='Latitude';
+  vlePosition.Cells[0, 2]:='Longitude';
+  vlePosition.Cells[0, 3]:='Altitude MSL';
+  vlePosition.Cells[0, 4]:='Altitude rel';
+  vlePosition.Cells[0, 5]:='Sats visible';
+  vlePosition.Cells[0, 6]:='Sats used';
+  vlePosition.Cells[0, 7]:='HDOP';
+  vlePosition.Cells[0, 8]:='VDOP';
+
+  vleVelocity.Cells[0, 1]:='Velocity';
+  vleVelocity.Cells[0, 2]:='Vx';
+  vleVelocity.Cells[0, 3]:='Vy';
+  vleVelocity.Cells[0, 4]:='Vz';
+  vleVelocity.Cells[0, 5]:='Variance';
+
+  vleSystem.Cells[0, 1]:='Vehicle type';
+  vleSystem.Cells[0, 2]:='Vehicle ID';
+  vleSystem.Cells[0, 3]:='FW version';
+  vleSystem.Cells[0, 4]:='FW date';
+  vleSystem.Cells[0, 5]:='Real Sense';
+
+  vleSysStatus.Cells[0, 1]:='Sensors present';
+  vleSysStatus.Cells[0, 2]:='Sensors enabled';
+  vleSysStatus.Cells[0, 3]:='Sensors healty';
+  vleSysStatus.Cells[0, 4]:='Drop rate';
+  vleSysStatus.Cells[0, 5]:='Comm erros';
+  vleSysStatus.Cells[0, 6]:='Error count';
+  vleSysStatus.Cells[0, 7]:='EKF status';
+  vleSysStatus.Cells[0, 8]:='Voltage';
+  vleSysStatus.Cells[0, 9]:='Radio SR24';
+
+  vleBaro.Cells[0, 1]:='Pressure';
+  vleBaro.Cells[0, 2]:='Temperature';
+  vleBaro.Cells[0, 3]:='Height estimate';
+
+  vleGyro.RowCount:=4;
+  SetXYZ(vleGyro);
+  vleGyro.Cells[0, 4]:='Gyro cali X';
+  vleGyro.Cells[0, 5]:='Gyro cali Y';
+  vleGyro.Cells[0, 6]:='Gyro cali Z';
+
+  SetXYZ(vleAcc, '[mG]');
+  vleAcc.Cells[0, 4]:='Magnitude [mG]';
+  vleAcc.Cells[0, 5]:='Acc cali X';
+  vleAcc.Cells[0, 6]:='Acc cali Y';
+  vleAcc.Cells[0, 7]:='Acc cali Z';
+
+  SetXYZ(vleMag);
+  vleMag.Cells[0, 4]:='Compass variance';
+  vleMag.Cells[0, 5]:='Mag offset X';
+  vleMag.Cells[0, 6]:='Mag offset Y';
+  vleMag.Cells[0, 7]:='Mag offset Z';
+//  vleMag.Cells[0, 8]:='Mag declination';
+
+  vleOrientation.Cells[0, 1]:='Roll';
+  vleOrientation.Cells[0, 2]:='Pitch';
+  vleOrientation.Cells[0, 3]:='Yaw';
+
+  ResetSensorsStatus;
+end;
+
 procedure TForm1.ClearMessageTables;
 var
   i: integer;
@@ -399,6 +624,23 @@ begin
   timerYGCcommandLong.Enabled:=false;
   timerTelemetry.Enabled:=false;
   timerFCCommand.Enabled:=false;
+  timerGUI.Enabled:=false;
+  timerSensors.Enabled:=false;
+  ser:=false;
+end;
+
+procedure TForm1.ResetSensorsStatus;
+begin
+  gbPosition.Color:=clSensorMiss;
+  gbBaro.Color:=clSensorMiss;
+  gbAcc.Color:=clSensorMiss;
+  gbGyro.Color:=clSensorMiss;
+  gbMag.Color:=clSensorMiss;
+  gbSysStatus.Color:=clSensorMiss;
+  shapeGPSOK.Pen.Color:=clSensorMiss;
+  shapeIMUOK.Pen.Color:=clSensorMiss;
+  shapeSonar.Pen.Color:=clSensorMiss;
+  shapeRSOK.Pen.Color:=clSensorMiss;
 end;
 
 procedure WriteCSVRawHeader(var list: TStringList);
@@ -409,7 +651,7 @@ var
 begin
   list.Clear;
   s:='Time';
-  for i:=0 to 50 do
+  for i:=0 to 105 do
     s:=s+';'+Format('%.*d', [2, i]);
   list.Add(s);
 end;
@@ -441,7 +683,7 @@ begin
   SetUInt16ToMsg(msg, 28, PanModeToInt);
   SetUInt16ToMsg(msg, 30, TiltModeToInt);
   SetUInt16ToMsg(msg, 32, 500);
-  SetCRC(msg);
+  SetCRC_FE(msg);
 end;
 
 procedure TForm1.CreateTelemetry5GHz(var msg: TMavMessage; SequenceNumber: byte);
@@ -466,7 +708,7 @@ begin
   msg.msgbytes[38]:=16;                                {f_mode}
   msg.msgbytes[39]:=5;                                 {v_type}
 
-  SetCRC(msg);
+  SetCRC_FE(msg);
 end;
 
 function ConnectUART(port, speed: string): string;
@@ -475,11 +717,12 @@ begin
   if UARTconnected then
     exit;
   UART:=TBlockSerial.Create;
+  SensorStream:=TMemoryStream.Create;
   {$IFDEF LINUX}
     UART.LinuxLock:=false;
   {$ENDIF}
   UART.Connect(port);
-  sleep(50);
+  sleep(200);
   UART.Config(StrToIntDef(speed, defaultbaud), 8, 'N', SB1, false, false); {Config default 115200 baud, 8N1}
   if UART.LastError=0 then begin
     UARTConnected:=true;
@@ -496,6 +739,7 @@ begin
       UART.CloseSocket;
     finally
       UART.Free;
+      SensorStream.Free;
       UARTConnected:=false;
     end;
   end;
@@ -509,11 +753,13 @@ var
 begin
   csvlist:=TStringList.Create;
   try
+    msg:=Default(TMAVmessage);
     SetStartValuesForGlobelVariables;
     chTiltLineSeries1.Clear;
     chPanLineSeries1.Clear;
     chRollLineSeries1.Clear;
-    Memo1.Lines.Clear;
+    GIMBALtext.Lines.Clear;
+    ResetSensorsStatus;
     lblGimbalVersion.Caption:='';
     lblSerial.Caption:='';
     lblGimbalBootTime.Caption:='';
@@ -522,16 +768,25 @@ begin
     WriteCSVRawHeader(csvlist);
     StatusBar1.Panels[2].Text:=ConnectUART(cbPort.Text, cbSpeed.Text);
 
-    if PageControl.ActivePage=tsFC then
+    if pcMain.ActivePage=tsFC then
       ActAsFlightController(msg, csvlist)
     else
-      if PageControl.ActivePage=tsYGC then
-        ActAsGimbalChecker(msg, csvlist);
+      if pcMain.ActivePage=tsYGC then
+        ActAsGimbalChecker(msg, csvlist)
+      else begin                            {GUI as default}
+        btnGeoFence.Enabled:=UARTConnected;
+        btnHeightLimit.Enabled:=UARTConnected;
+        ActAsGUI(msg, csvlist);
+      end;
 
     StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
     StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
-    if cbRecord.Checked and SaveDialog1.Execute then
+    SaveDialog1.FilterIndex:=1;
+    SaveDialog1.FileName:='BCmessages_'+FormatDateTime('yyyymmdd_hhnnss', now)+'.csv';
+    if cbRecord.Checked and (csvlist.Count>1) and SaveDialog1.Execute then begin
       csvlist.SaveToFile(SaveDialog1.FileName);
+      StatusBar1.Panels[2].Text:=SaveDialog1.FileName+rsSaved;
+    end;
   finally
     csvlist.Free;
   end;
@@ -552,31 +807,31 @@ end;
 function TForm1.YGC_TimestampIn_ms(msg: TMAVmessage): integer;
 begin
   result:=MavGetUInt32(msg, 9);
-  lblGimbalBootTime.Caption:=FormatFloat('0.000', result/1000);
+  lblGimbalBootTime.Caption:=FormatFloat(floatformat3, result/1000);
 end;
 
 procedure TForm1.GIMBAL_GYRO_POWER(msg: TMAVmessage);
 begin
   YGC_TimestampIn_ms(msg);
-  gridVarious.Cells[1, 1]:=FormatFloat('0.00', MavGetInt16(msg, 13)/100);       {GyroHope}
-  gridVarious.Cells[1, 2]:=FormatFloat('0.00', MavGetInt16(msg, 15)/100);
-  gridVarious.Cells[1, 3]:=FormatFloat('0.00', MavGetInt16(msg, 17)/100);
+  gridVarious.Cells[1, 1]:=FormatFloat(floatformat2, MavGetInt16(msg, 13)/100);       {GyroHope}
+  gridVarious.Cells[1, 2]:=FormatFloat(floatformat2, MavGetInt16(msg, 15)/100);
+  gridVarious.Cells[1, 3]:=FormatFloat(floatformat2, MavGetInt16(msg, 17)/100);
 
-  gridVarious.Cells[1, 4]:=FormatFloat('0.00', MavGetInt16(msg, 19)/100);       {Gyro}
-  gridVarious.Cells[1, 5]:=FormatFloat('0.00', MavGetInt16(msg, 21)/100);
-  gridVarious.Cells[1, 6]:=FormatFloat('0.00', MavGetInt16(msg, 23)/100);
+  gridVarious.Cells[1, 4]:=FormatFloat(floatformat2, MavGetInt16(msg, 19)/100);       {Gyro}
+  gridVarious.Cells[1, 5]:=FormatFloat(floatformat2, MavGetInt16(msg, 21)/100);
+  gridVarious.Cells[1, 6]:=FormatFloat(floatformat2, MavGetInt16(msg, 23)/100);
 
-  gridVarious.Cells[1, 7]:=FormatFloat('0.00', MavGetInt16(msg, 25)/100);       {SpeedHope}
-  gridVarious.Cells[1, 8]:=FormatFloat('0.00', MavGetInt16(msg, 27)/100);
-  gridVarious.Cells[1, 9]:=FormatFloat('0.00', MavGetInt16(msg, 29)/100);
+  gridVarious.Cells[1, 7]:=FormatFloat(floatformat2, MavGetInt16(msg, 25)/100);       {SpeedHope}
+  gridVarious.Cells[1, 8]:=FormatFloat(floatformat2, MavGetInt16(msg, 27)/100);
+  gridVarious.Cells[1, 9]:=FormatFloat(floatformat2, MavGetInt16(msg, 29)/100);
 
-  gridVarious.Cells[1, 10]:=FormatFloat('0.00', MavGetInt16(msg, 31)/100);      {Speed}
-  gridVarious.Cells[1, 11]:=FormatFloat('0.00', MavGetInt16(msg, 33)/100);
-  gridVarious.Cells[1, 12]:=FormatFloat('0.00', MavGetInt16(msg, 35)/100);
+  gridVarious.Cells[1, 10]:=FormatFloat(floatformat2, MavGetInt16(msg, 31)/100);      {Speed}
+  gridVarious.Cells[1, 11]:=FormatFloat(floatformat2, MavGetInt16(msg, 33)/100);
+  gridVarious.Cells[1, 12]:=FormatFloat(floatformat2, MavGetInt16(msg, 35)/100);
 
-  gridVarious.Cells[1, 13]:=FormatFloat('0.00', MavGetInt16(msg, 37)/100);      {Power}
-  gridVarious.Cells[1, 14]:=FormatFloat('0.00', MavGetInt16(msg, 39)/100);
-  gridVarious.Cells[1, 15]:=FormatFloat('0.00', MavGetInt16(msg, 41)/100);
+  gridVarious.Cells[1, 13]:=FormatFloat(floatformat2, MavGetInt16(msg, 37)/100);      {Power}
+  gridVarious.Cells[1, 14]:=FormatFloat(floatformat2, MavGetInt16(msg, 39)/100);
+  gridVarious.Cells[1, 15]:=FormatFloat(floatformat2, MavGetInt16(msg, 41)/100);
 end;
 
 procedure TForm1.GIMBAL_EULER_ANGLE(msg: TMAVmessage);
@@ -590,91 +845,91 @@ begin
 
   AngleHopeY:=MavGetInt16(msg, 15);
   AngleHopeZ:=MavGetInt16(msg, 17);
-  gridVarious.Cells[1, 1]:=FormatFloat('0.00', AngleHopeX/100);
-  gridVarious.Cells[1, 2]:=FormatFloat('0.00', AngleHopeY/100);
-  gridVarious.Cells[1, 3]:=FormatFloat('0.00', AngleHopeZ/100);
+  gridVarious.Cells[1, 1]:=FormatFloat(floatformat2, AngleHopeX/100);
+  gridVarious.Cells[1, 2]:=FormatFloat(floatformat2, AngleHopeY/100);
+  gridVarious.Cells[1, 3]:=FormatFloat(floatformat2, AngleHopeZ/100);
   AngleX:=MavGetInt16(msg, 19);
   AngleY:=MavGetInt16(msg, 21);
   AngleZ:=MavGetInt16(msg, 23);
-  gridVarious.Cells[1, 4]:=FormatFloat('0.00', AngleX/100);
-  gridVarious.Cells[1, 5]:=FormatFloat('0.00', AngleY/100);
-  gridVarious.Cells[1, 6]:=FormatFloat('0.00', AngleZ/100);
+  gridVarious.Cells[1, 4]:=FormatFloat(floatformat2, AngleX/100);
+  gridVarious.Cells[1, 5]:=FormatFloat(floatformat2, AngleY/100);
+  gridVarious.Cells[1, 6]:=FormatFloat(floatformat2, AngleZ/100);
 
-  gridVarious.Cells[1, 7]:=FormatFloat('0.00', MavGetInt16(msg, 25)/100);       {EulerHope}
-  gridVarious.Cells[1, 8]:=FormatFloat('0.00', MavGetInt16(msg, 27)/100);
-  gridVarious.Cells[1, 9]:=FormatFloat('0.00', MavGetInt16(msg, 29)/100);
+  gridVarious.Cells[1, 7]:=FormatFloat(floatformat2, MavGetInt16(msg, 25)/100);       {EulerHope}
+  gridVarious.Cells[1, 8]:=FormatFloat(floatformat2, MavGetInt16(msg, 27)/100);
+  gridVarious.Cells[1, 9]:=FormatFloat(floatformat2, MavGetInt16(msg, 29)/100);
 
-  gridVarious.Cells[1, 10]:=FormatFloat('0.00', MavGetInt16(msg, 31)/100);      {Euler}
-  gridVarious.Cells[1, 11]:=FormatFloat('0.00', MavGetInt16(msg, 33)/100);
-  gridVarious.Cells[1, 12]:=FormatFloat('0.00', MavGetInt16(msg, 35)/100);
+  gridVarious.Cells[1, 10]:=FormatFloat(floatformat2, MavGetInt16(msg, 31)/100);      {Euler}
+  gridVarious.Cells[1, 11]:=FormatFloat(floatformat2, MavGetInt16(msg, 33)/100);
+  gridVarious.Cells[1, 12]:=FormatFloat(floatformat2, MavGetInt16(msg, 35)/100);
 
-  gridVarious.Cells[1, 13]:=FormatFloat('0.00', (AngleHopeX-AngleX)/100);       {AngleError}
-  gridVarious.Cells[1, 14]:=FormatFloat('0.00', (AngleHopeY-AngleY)/100);
-  gridVarious.Cells[1, 15]:=FormatFloat('0.00', (AngleHopeZ-AngleZ)/100);
+  gridVarious.Cells[1, 13]:=FormatFloat(floatformat2, (AngleHopeX-AngleX)/100);       {AngleError}
+  gridVarious.Cells[1, 14]:=FormatFloat(floatformat2, (AngleHopeY-AngleY)/100);
+  gridVarious.Cells[1, 15]:=FormatFloat(floatformat2, (AngleHopeZ-AngleZ)/100);
 end;
 
 procedure TForm1.GIMBAL_ACC(msg: TMAVmessage);
 begin
   YGC_TimestampIn_ms(msg);
-  gridVarious.Cells[1, 1]:=FormatFloat('0.000', MavGetInt16(msg, 13)/1000);     {AccLowPass}
-  gridVarious.Cells[1, 2]:=FormatFloat('0.000', MavGetInt16(msg, 15)/1000);
-  gridVarious.Cells[1, 3]:=FormatFloat('0.000', MavGetInt16(msg, 17)/1000);
-  gridVarious.Cells[1, 4]:=FormatFloat('0.000', MavGetInt16(msg, 19)/1000);
+  gridVarious.Cells[1, 1]:=FormatFloat(floatformat3, MavGetInt16(msg, 13)/1000); {AccLowPass}
+  gridVarious.Cells[1, 2]:=FormatFloat(floatformat3, MavGetInt16(msg, 15)/1000);
+  gridVarious.Cells[1, 3]:=FormatFloat(floatformat3, MavGetInt16(msg, 17)/1000);
+  gridVarious.Cells[1, 4]:=FormatFloat(floatformat3, MavGetInt16(msg, 19)/1000);
 
-  gridVarious.Cells[1, 5]:=FormatFloat('0.000', MavGetInt16(msg, 21)/1000);     {Acc}
-  gridVarious.Cells[1, 6]:=FormatFloat('0.000', MavGetInt16(msg, 23)/1000);
-  gridVarious.Cells[1, 7]:=FormatFloat('0.000', MavGetInt16(msg, 25)/1000);
-  gridVarious.Cells[1, 8]:=FormatFloat('0.000', MavGetInt16(msg, 27)/1000);
+  gridVarious.Cells[1, 5]:=FormatFloat(floatformat3, MavGetInt16(msg, 21)/1000); {Acc}
+  gridVarious.Cells[1, 6]:=FormatFloat(floatformat3, MavGetInt16(msg, 23)/1000);
+  gridVarious.Cells[1, 7]:=FormatFloat(floatformat3, MavGetInt16(msg, 25)/1000);
+  gridVarious.Cells[1, 8]:=FormatFloat(floatformat3, MavGetInt16(msg, 27)/1000);
 
-  gridVarious.Cells[1, 9]:=FormatFloat('0.000', MavGetInt16(msg, 29)/1000);     {HorizontalAcc}
-  gridVarious.Cells[1, 10]:=FormatFloat('0.000', MavGetInt16(msg, 31)/1000);    {VerticalAcc}
+  gridVarious.Cells[1, 9]:=FormatFloat(floatformat3, MavGetInt16(msg, 29)/1000); {HorizontalAcc}
+  gridVarious.Cells[1, 10]:=FormatFloat(floatformat3, MavGetInt16(msg, 31)/1000); {VerticalAcc}
 
-  gridVarious.Cells[1, 11]:=FormatFloat('0.000', MavGetInt16(msg, 33)/1000);    {AccKp}
-  gridVarious.Cells[1, 12]:=FormatFloat('0.000', MavGetInt16(msg, 35)/1000);
-  gridVarious.Cells[1, 13]:=FormatFloat('0.000', MavGetInt16(msg, 37)/1000);
+  gridVarious.Cells[1, 11]:=FormatFloat(floatformat3, MavGetInt16(msg, 33)/1000); {AccKp}
+  gridVarious.Cells[1, 12]:=FormatFloat(floatformat3, MavGetInt16(msg, 35)/1000);
+  gridVarious.Cells[1, 13]:=FormatFloat(floatformat3, MavGetInt16(msg, 37)/1000);
 
-  gridVarious.Cells[1, 14]:=FormatFloat('0.00', MavGetInt16(msg, 39)/100);      {HorizontalAccChage}
-  gridVarious.Cells[1, 15]:=FormatFloat('0.00', MavGetInt16(msg, 41)/100);
+  gridVarious.Cells[1, 14]:=FormatFloat(floatformat2, MavGetInt16(msg, 39)/100); {HorizontalAccChage}
+  gridVarious.Cells[1, 15]:=FormatFloat(floatformat2, MavGetInt16(msg, 41)/100);
 end;
 
 procedure TForm1.GIMBAL_TEMP_DIFF(msg: TMAVmessage);
 begin
   YGC_TimestampIn_ms(msg);
-  gridVarious.Cells[1, 1]:=FormatFloat('0.000', MavGetInt16(msg, 13)/1000);     {HistoryZroTolerance}
-  gridVarious.Cells[1, 2]:=FormatFloat('0.000', MavGetInt16(msg, 15)/1000);
-  gridVarious.Cells[1, 3]:=FormatFloat('0.000', MavGetInt16(msg, 17)/1000);
+  gridVarious.Cells[1, 1]:=FormatFloat(floatformat3, MavGetInt16(msg, 13)/1000); {HistoryZroTolerance}
+  gridVarious.Cells[1, 2]:=FormatFloat(floatformat3, MavGetInt16(msg, 15)/1000);
+  gridVarious.Cells[1, 3]:=FormatFloat(floatformat3, MavGetInt16(msg, 17)/1000);
 
-  gridVarious.Cells[1, 4]:=FormatFloat('0.000', MavGetInt16(msg, 19)/1000);     {ZroTolerance}
-  gridVarious.Cells[1, 5]:=FormatFloat('0.000', MavGetInt16(msg, 21)/1000);
-  gridVarious.Cells[1, 6]:=FormatFloat('0.000', MavGetInt16(msg, 23)/1000);
+  gridVarious.Cells[1, 4]:=FormatFloat(floatformat3, MavGetInt16(msg, 19)/1000); {ZroTolerance}
+  gridVarious.Cells[1, 5]:=FormatFloat(floatformat3, MavGetInt16(msg, 21)/1000);
+  gridVarious.Cells[1, 6]:=FormatFloat(floatformat3, MavGetInt16(msg, 23)/1000);
 
-  gridVarious.Cells[1, 7]:=FormatFloat('0.000', MavGetInt16(msg, 25)/1000);     {ZroVariation}
-  gridVarious.Cells[1, 8]:=FormatFloat('0.000', MavGetInt16(msg, 27)/1000);
-  gridVarious.Cells[1, 9]:=FormatFloat('0.000', MavGetInt16(msg, 29)/1000);
+  gridVarious.Cells[1, 7]:=FormatFloat(floatformat3, MavGetInt16(msg, 25)/1000); {ZroVariation}
+  gridVarious.Cells[1, 8]:=FormatFloat(floatformat3, MavGetInt16(msg, 27)/1000);
+  gridVarious.Cells[1, 9]:=FormatFloat(floatformat3, MavGetInt16(msg, 29)/1000);
 
-  gridVarious.Cells[1, 10]:=FormatFloat('0.00', MavGetInt16(msg, 31)/100);      {Temp}
-  gridVarious.Cells[1, 11]:=FormatFloat('0.00', MavGetInt16(msg, 33)/100);
-  gridVarious.Cells[1, 12]:=FormatFloat('0.00', MavGetInt16(msg, 35)/100);
-  gridVarious.Cells[1, 13]:=FormatFloat('0.00', MavGetInt16(msg, 37)/100);
+  gridVarious.Cells[1, 10]:=FormatFloat(floatformat2, MavGetInt16(msg, 31)/100); {Temp}
+  gridVarious.Cells[1, 11]:=FormatFloat(floatformat2, MavGetInt16(msg, 33)/100);
+  gridVarious.Cells[1, 12]:=FormatFloat(floatformat2, MavGetInt16(msg, 35)/100);
+  gridVarious.Cells[1, 13]:=FormatFloat(floatformat2, MavGetInt16(msg, 37)/100);
 end;
 
 procedure TForm1.GIMBAL_STATUS(msg: TMAVmessage);
 begin
   YGC_TimestampIn_ms(msg);
-  gridStatus.Cells[1, 1]:=FormatFloat('0.00', MavGetUInt16(msg, 13)/100);
-  gridStatus.Cells[1, 2]:=FormatFloat('0.00', MavGetUInt16(msg, 15)/1000);
+  gridStatus.Cells[1, 1]:=FormatFloat(floatformat2, MavGetUInt16(msg, 13)/100);
+  gridStatus.Cells[1, 2]:=FormatFloat(floatformat2, MavGetUInt16(msg, 15)/1000);
   gridStatus.Cells[1, 3]:=IntToStr(MavGetUInt16(msg, 17));                      {Seconds}
 
   gridStatus.Cells[1, 4]:=IntToStr(MavGetInt16(msg, 19));                       {Enc_data}
   gridStatus.Cells[1, 5]:=IntToStr(MavGetInt16(msg, 21));
   gridStatus.Cells[1, 6]:=IntToStr(MavGetInt16(msg, 23));
 
-  gridStatus.Cells[1, 7]:=FormatFloat('0.00', MavGetInt16(msg, 25)/100);        {StageAngle}
-  gridStatus.Cells[1, 8]:=FormatFloat('0.00', MavGetInt16(msg, 27)/100);
+  gridStatus.Cells[1, 7]:=FormatFloat(floatformat2, MavGetInt16(msg, 25)/100);  {StageAngle}
+  gridStatus.Cells[1, 8]:=FormatFloat(floatformat2, MavGetInt16(msg, 27)/100);
 
-  gridStatus.Cells[1, 9]:=FormatFloat('0.00', MavGetInt16(msg, 29)/100);        {AC_angle}
-  gridStatus.Cells[1, 10]:=FormatFloat('0.00', MavGetInt16(msg, 31)/100);
-  gridStatus.Cells[1, 11]:=FormatFloat('0.00', MavGetInt16(msg, 33)/100);
+  gridStatus.Cells[1, 9]:=FormatFloat(floatformat2, MavGetInt16(msg, 29)/100);  {AC_angle}
+  gridStatus.Cells[1, 10]:=FormatFloat(floatformat2, MavGetInt16(msg, 31)/100);
+  gridStatus.Cells[1, 11]:=FormatFloat(floatformat2, MavGetInt16(msg, 33)/100);
 
   gridStatus.Cells[1, 12]:=IntToStr(msg.msgbytes[35]);                          {GyroStable}
   gridStatus.Cells[1, 13]:=IntToStr(msg.msgbytes[36]);
@@ -698,9 +953,9 @@ var
 begin
   if ser then
     exit;
-  s:=GetCAM_SERIAL(msg);
+  s:=GetSERIAL(msg, LengthFixPartFE+1);
   lblSerial.Caption:=s;
-  Caption:=AppName+tab2+s;
+  Caption:=Application.Title+tab2+s;
   ser:=true;                          {Read serial number only once}
 end;
 
@@ -710,7 +965,7 @@ var
 
 begin
   s:=GetTEXT_MESSAGE(msg);
-  Memo1.Lines.Add(s);
+  GIMBALtext.Lines.Add(s);
 end;
 
 procedure TForm1.SendYGCHeartbeat;
@@ -746,7 +1001,7 @@ begin
         $12: CAM_SERIAL(msg);
         $FE: TEXT_MESSAGE(msg);
       else
-        Memo1.Lines.Add('Unknown YGC message type: 0x'+
+        GIMBALtext.Lines.Add('Unknown YGC message type: 0x'+
                         IntToHex(msg.msgbytes[8], 2)+tab2+
                         ' = '+IntToStr(msg.msgbytes[8]));
       end;
@@ -754,14 +1009,14 @@ begin
   end;
 end;
 
-procedure TForm1.RecordMessage(msg: TMAVmessage; list: TStringList);
+procedure TForm1.RecordMessage(msg: TMAVmessage; list: TStringList; LengthFixPart: byte);
 var
   s: string;
   i: integer;
 
 begin
-  s:=FormatFloat('0.000', (GetTickCount64-boottime)/1000);
-  for i:=0 to msg.msglength+LengthFixPartFE+1 do begin
+  s:=FormatFloat(floatformat3, (GetTickCount64-boottime)/1000);
+  for i:=0 to msg.msglength+LengthFixPart+1 do begin
     s:=s+';'+IntToHex(msg.msgbytes[i], 2);
   end;
   list.Add(s);
@@ -783,20 +1038,437 @@ begin
   end;
 end;
 
+procedure SendParamRequest;
+var
+  msg: TMAVmessage;
+
+begin
+  CreateGUI_PARAM_REQUEST_LIST(msg);
+  if msg.valid then begin
+    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+      inc(MessagesSent);
+  end;
+  sleep(wait);
+
+  CreateGUI_MISSION_REQUEST_INT(msg, 1);
+  if msg.valid then begin
+    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+      inc(MessagesSent);
+  end;
+  sleep(wait);
+  CreateGUI_MISSION_REQUEST_INT(msg, 11);
+  if msg.valid then begin
+    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+      inc(MessagesSent);
+  end;
+  sleep(wait);
+  CreateGUI_MISSION_REQUEST_INT(msg, 12);
+  if msg.valid then begin
+    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+      inc(MessagesSent);
+  end;
+end;
+
+procedure TForm1.FillGUIPosition24(const sats: TGPSdata);
+begin
+  vlePosition.Cells[1, 1]:=FormatCoordinates(sats.lat);
+  vlePosition.Cells[1, 2]:=FormatCoordinates(sats.lon);
+  vlePosition.Cells[1, 3]:=FormatAltitude(sats.altMSL);
+  vlePosition.Cells[1, 6]:=IntToStr(sats.sats_inuse);
+  vlePosition.Cells[1, 7]:=FormatDOP(sats.eph);
+  vlePosition.Cells[1, 8]:=FormatDOP(sats.epv);
+
+  vleVelocity.Cells[1, 1]:=FormatSpeed(sats.vel);
+end;
+
+procedure TForm1.FillGUIPosition33(const sats: TGPSdata);
+begin
+  vlePosition.Cells[1, 1]:=FormatCoordinates(sats.lat);
+  vlePosition.Cells[1, 2]:=FormatCoordinates(sats.lon);
+  vlePosition.Cells[1, 4]:=FormatAltitude(sats.alt_rel);
+  vleBaro.Cells[1, 3]:=FormatAltitude(sats.alt_rel);
+
+  vleVelocity.Cells[1, 2]:=FormatXYZSpeed(sats.vx);
+  vleVelocity.Cells[1, 3]:=FormatXYZSpeed(sats.vy);
+  vleVelocity.Cells[1, 4]:=FormatXYZSpeed(sats.vz);
+end;
+
+procedure TForm1.FillGUIIMU(const data: THWstatusData);
+var
+  Magnitude: double;
+
+begin
+  vleAcc.Cells[1, 1]:=IntToStr(data.AccX);
+  vleAcc.Cells[1, 2]:=IntToStr(data.AccY);
+  vleAcc.Cells[1, 3]:=IntToStr(data.AccZ);
+  Magnitude:=Value3D(data.AccX, data.AccY, data.AccZ);
+  vleAcc.Cells[1, 4]:=FormatFloat(floatformat2, Magnitude);
+  if Magnitude<AccMin then
+    gbAcc.Color:=clSensorMiss;
+
+  vleGyro.Cells[1, 1]:=IntToStr(data.GyroX);
+  vleGyro.Cells[1, 2]:=IntToStr(data.GyroY);
+  vleGyro.Cells[1, 3]:=IntToStr(data.GyroZ);
+
+  vleMag.Cells[1, 1]:=IntToStr(data.MagX);
+  vleMag.Cells[1, 2]:=IntToStr(data.MagY);
+  vleMag.Cells[1, 3]:=IntToStr(data.MagZ);
+end;
+
+procedure TForm1.FillSENSOR_OFFSETS(const data: THWstatusData);
+begin
+  vleAcc.Cells[1, 5]:=FormatFloat(floatformat3, data.AccCaliX);
+  vleAcc.Cells[1, 6]:=FormatFloat(floatformat3, data.AccCaliY);
+  vleAcc.Cells[1, 7]:=FormatFloat(floatformat3, data.AccCaliZ);
+
+  vleGyro.Cells[1, 4]:=FormatFloat(floatformat3, data.GyroCaliX);
+  vleGyro.Cells[1, 5]:=FormatFloat(floatformat3, data.GyroCaliY);
+  vleGyro.Cells[1, 6]:=FormatFloat(floatformat3, data.GyroCaliZ);
+
+  vleMag.Cells[1, 5]:=IntToStr(data.MagOfsX);
+  vleMag.Cells[1, 6]:=IntToStr(data.MagOfsY);
+  vleMag.Cells[1, 7]:=IntToStr(data.MagOfsZ);
+//  vleMag.Cells[1, 7]:=FormatFloat(floatformat3, data.MagDecl);
+end;
+
+procedure TForm1.FillAttitude(data: TAttitudeData);
+begin
+  vleOrientation.Cells[1, 1]:=FormatFloat(floatformat1, data.roll);
+  vleOrientation.Cells[1, 2]:=FormatFloat(floatformat1, data.pitch);
+  vleOrientation.Cells[1, 3]:=FormatFloat(floatformat1, data.yaw);
+end;
+
+procedure TForm1.FillEKF_STATUS_REPORT(data: TAttitudeData);
+begin
+  vleVelocity.Cells[1, 5]:=FormatFloat(floatformat3, data.velocity_variance);
+  vleMag.Cells[1, 4]:=FormatFloat(floatformat3, data.compass_variance);
+  vleSysStatus.Cells[1, 7]:=IntToHex(data.EKFstatus, 4);
+end;
+
+{ YTH OK w/o RS: 00 A0 FC 2F      with RS: 02 A0 FC 6F
+
+1    MAV_SYS_STATUS_SENSOR_3D_GYRO=1                     0x01 3D gyro
+1    MAV_SYS_STATUS_SENSOR_3D_ACCEL=2                    0x02 3D accelerometer
+1    MAV_SYS_STATUS_SENSOR_3D_MAG=4                      0x04 3D magnetometer
+1    MAV_SYS_STATUS_SENSOR_ABSOLUTE_PRESSURE=8           0x08 absolute pressure
+
+0    MAV_SYS_STATUS_SENSOR_DIFFERENTIAL_PRESSURE=16      0x10 differential pressure
+1    MAV_SYS_STATUS_SENSOR_GPS=32                        0x20 GPS
+0(1) MAV_SYS_STATUS_SENSOR_OPTICAL_FLOW=64               0x40 optical flow
+0    MAV_SYS_STATUS_SENSOR_VISION_POSITION=128           0x80 computer vision position
+
+0    MAV_SYS_STATUS_SENSOR_LASER_POSITION=256            0x100 laser based position
+0    MAV_SYS_STATUS_SENSOR_EXTERNAL_GROUND_TRUTH=512     0x200 external ground truth (Vicon or Leica)
+1    MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL=1024     0x400 3D angular rate control
+1    MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION=2048   0x800 attitude stabilization
+
+1    MAV_SYS_STATUS_SENSOR_YAW_POSITION=4096             0x1000 yaw position
+1    MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL=8192       0x2000 z/altitude control
+1    MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL=16384     0x4000 x/y position control
+1    MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS=32768           0x8000 motor outputs / control
+
+0(1) MAV_SYS_STATUS_SENSOR_RC_RECEIVER=65536             0x10000 Radio SR24
+0    MAV_SYS_STATUS_SENSOR_3D_GYRO2=131072               0x20000 2nd 3D gyro
+0    MAV_SYS_STATUS_SENSOR_3D_ACCEL2=262144              0x40000 2nd 3D accelerometer
+0    MAV_SYS_STATUS_SENSOR_3D_MAG2=524288                0x80000 2nd 3D magnetometer
+
+0    MAV_SYS_STATUS_GEOFENCE=1048576                     0x100000 geofence
+1    MAV_SYS_STATUS_AHRS=2097152                         0x200000 AHRS subsystem health
+0    MAV_SYS_STATUS_TERRAIN=4194304                      0x400000 Terrain subsystem health
+1    MAV_SYS_STATUS_REVERSE_MOTOR=8388608                0x800000 Motors are reversed   Sonar !
+
+0    MAV_SYS_STATUS_LOGGING=16777216                     0x1000000 Logging
+0(1) MAV_SYS_STATUS_SENSOR_BATTERY=33554432              0x2000000 Battery
+0    MAV_SYS_STATUS_SENSOR_PROXIMITY=67108864            0x4000000 Proximity
+0    MAV_SYS_STATUS_SENSOR_SATCOM=134217728              0x8000000 Satellite Communication
+
+0    MAV_SYS_STATUS_PREARM_CHECK=268435456               0x10000000 pre-arm check status. Always healthy when armed
+0    MAV_SYS_STATUS_OBSTACLE_AVOIDANCE=536870912         0x20000000 Avoidance/collision prevention
+0    MAV_SYS_STATUS_SENSOR_PROPULSION=1073741824         0x40000000 propulsion (actuator, esc, motor or propellor)
+0    MAV_SYS_STATUS_EXTENSION_USED=2147483648            0x80000000 Extended bit-field are used for further sensor status bits (needs to be set in onboard_control_sensors_present only)
+}
+
+procedure TForm1.FillGUI_SYS_STATUS(const msg: TMAVmessage; var data: TGPSdata);
+var
+  err: integer;
+  healty, enabld: UInt32;
+
+begin
+  vleSysStatus.Cells[1, 1]:=IntToHexSpace(MavGetUInt32(msg, 6));
+  enabld:=MavGetUInt32(msg, 10);
+  vleSysStatus.Cells[1, 2]:=IntToHexSpace(enabld);
+  healty:=MavGetUInt32(msg, 14);
+  vleSysStatus.Cells[1, 3]:=IntToHexSpace(healty);
+
+  vleSysStatus.Cells[1, 4]:=IntToStr(MavGetUInt16(msg, 24));
+  vleSysStatus.Cells[1, 5]:=IntToStr(MavGetUInt16(msg, 26));
+  err:=MavGetUInt16(msg, 28)+MavGetUInt16(msg, 30)+
+       MavGetUInt16(msg, 32)+MavGetUInt16(msg, 34);
+  vleSysStatus.Cells[1, 6]:=IntToStr(err);
+  vleSysStatus.Cells[1, 8]:=FormatFloat(floatformat2, data.voltage/1000)+'V';
+
+  if (enabld and $10000)=$10000 then                     {Radio SR24}
+    vleSysStatus.Cells[1, 9]:='Enabled';
+  if (healty and $10000)=$10000 then
+    vleSysStatus.Cells[1, 9]:='Connected';
+
+  if (enabld and $40)=$40 then
+    vleSystem.Cells[1, 5]:='Available'
+  else
+    vleSystem.Cells[1, 5]:='Not mounted';
+  if (healty and $2000040)=$2000040 then begin           {Real Sense}
+    if shapeRSOK.Pen.Color<>clSensorOK then
+      shapeRSOK.Pen.Color:=clSensorOK;
+  end;
+
+  if (healty and 1)=1 then begin
+    if gbGyro.Color<>clSensorOK then
+      gbGyro.Color:=clSensorOK;
+  end else begin
+    data.sensors_OK:=false;
+    gbGyro.Color:=clSensorMiss;
+  end;
+  if (healty and 2)=2 then begin
+    if gbAcc.Color<>clSensorOK then
+      gbAcc.Color:=clSensorOK;
+  end else begin
+    data.sensors_OK:=false;
+    gbAcc.Color:=clSensorMiss;
+  end;
+  if (healty and 4)=4 then begin
+    if gbMag.Color<>clSensorOK then
+      gbMag.Color:=clSensorOK;
+  end else begin
+    data.sensors_OK:=false;
+    gbMag.Color:=clSensorMiss;
+  end;
+
+  if (healty and $0F)=$0F then begin                     {Gyro, Acc, Mag and Baro}
+    if shapeIMUOK.Pen.Color<>clSensorOK then
+      shapeIMUOK.Pen.Color:=clSensorOK;
+  end else begin
+    data.sensors_OK:=false;
+    shapeIMUOK.Pen.Color:=clSensorMiss;
+  end;
+
+
+  if (healty and 8)=8 then begin
+    if gbBaro.Color<>clSensorOK then
+      gbBaro.Color:=clSensorOK;
+  end else begin
+    data.sensors_OK:=false;
+    gbBaro.Color:=clSensorMiss;
+  end;
+  if (healty and $800000)=$800000 then begin
+    if shapeSonar.Pen.Color<>clSensorOK then
+      shapeSonar.Pen.Color:=clSensorOK;
+  end else begin
+    data.sensors_OK:=false;
+    shapeSonar.Pen.Color:=clSensorMiss;
+  end;
+
+  if data.sensors_OK and (err=0) then
+    gbSysStatus.Color:=clSensorOK
+  else
+    gbSysStatus.Color:=clSensorMiss;
+end;
+
+procedure TForm1.ClearGUI;
+var
+  i: byte;
+
+begin
+  ser:=false;
+  BarSatSNR.Clear;
+  SatPolarSeries.Clear;
+  ResetSensorsStatus;     {notwendig?}
+  lblSysTime.Caption:='System time UTC';
+  GUItext.Text:='';
+  for i:=1 to vlePosition.RowCount-1 do       {notwendig?}
+    vlePosition.Cells[1, i]:='';
+  for i:=1 to vleVelocity.RowCount-1 do
+    vleVelocity.Cells[1, i]:='';
+  for i:=1 to vleSystem.RowCount-1 do
+    vleSystem.Cells[1, i]:='';
+
+end;
+
+function FormatBootTime(const data: TGPSdata): string;
+begin
+  result:=FormatDateTime(timezzz, data.boottime);
+end;
+
+procedure TForm1.ReadGUIMessages(msg: TMAVmessage);
+var
+  GUI_GPSdata: TGPSdata;
+  Sensors: THWstatusData;
+  DronePos: TAttitudeData;
+  s, dt: string;
+  value: single;
+
+(*  procedure DATA96;
+  var
+    w: single;
+    i: byte;
+    s: string;
+
+  begin
+    s:=lblFCtime.Caption+';'+MAV_PARAM_TYPEtoStr(msg.msgbytes[6]);
+    for i:=0 to 23 do begin
+      w:=MavGetFloat(msg, i*4+8);
+      s:=s+';'+FormatFloat('0.000', w);
+    end;
+    GUItext.Lines.Add(s);
+  end;   *)
+
+begin
+  GUI_GPSdata:=Default(TGPSdata);
+  Sensors:=Default(THWstatusData);
+  DronePos:=Default(TAttitudeData);
+  case msg.msgid of
+    0: begin
+      SendParamRequest;
+      lblOK.Caption:=tab1;
+    end;
+    1: begin
+      SYS_STATUS(msg, LengthFixPartBC, GUI_GPSdata);
+      FillGUI_SYS_STATUS(msg, GUI_GPSdata);
+    end;
+    2: begin
+      SYS_TIME(msg, LengthFixPartBC, GUI_GPSdata);
+      lblSysTime.Caption:=FormatDateTime(timefull, GUI_GPSdata.timeUTC);
+      lblFCtime.Caption:=FormatBootTime(GUI_GPSdata);
+      lblFCtimeGPS.Caption:=FormatBootTime(GUI_GPSdata);
+    end;
+
+    22: begin
+      s:=PARAM_VALUE(msg, LengthFixPartBC, value);
+//      GUItext.Lines.Add(s+' = '+FormatFloat('0', value));   {Option: Look what else may come}
+      if s=pGeoFence then
+        lblGeoFenceVal.Caption:=FormatFloat('0', value)+'m'
+      else
+        if s=pHeightLimit then
+          lblHeightLimitVal.Caption:=FormatFloat('0', value)+'m';
+    end;
+
+    24: begin
+      GPS_RAW_INT(msg, LengthFixPartBC, GUI_GPSdata);
+      lblFCtime.Caption:=FormatBootTime(GUI_GPSdata);
+      lblFCtimeGPS.Caption:=FormatBootTime(GUI_GPSdata);
+      FillGUIposition24(GUI_GPSdata);
+      timerSensors.Enabled:=false;
+    end;
+    25: begin
+      GPS_STATUS(msg, LengthFixPartBC, GUI_GPSdata);
+      CreateSatSNRBarChart(GUI_GPSdata);
+      CreateSatPolarDiagram(GUI_GPSdata);
+      vlePosition.Cells[1, 5]:=IntToStr(msg.msgbytes[6]);     {Sats visible}
+      if (gbPosition.Color<>clSensorOK) and (gbPosition.Color<>clSatUsed) then
+        gbPosition.Color:=clSensorOK;
+      if shapeGPSOK.Pen.Color<>clSensorOK then
+        shapeGPSOK.Pen.Color:=clSensorOK;
+    end;
+
+    27: begin
+      RAW_IMU(msg, LengthFixPartBC, sensors);
+      FillGUIIMU(sensors);
+    end;
+
+    29: begin
+      SCALED_PRESSURE(msg, LengthFixPartBC, Sensors);
+      vleBaro.Cells[1, 1]:=FormatFloat(floatformat2, Sensors.pressure_abs)+'hPa';
+      vleBaro.Cells[1, 2]:=FormatFloat(floatformat2, Sensors.baro_temp/100)+'°C';
+    end;
+    30: begin
+      ATTITUDE(msg, LengthFixPartBC, DronePos);
+      FillAttitude(DronePos);
+    end;
+
+    33: begin
+      GLOBAL_POSITION_INT(msg, LengthFixPartBC, GUI_GPSdata);
+      FillGUIposition33(GUI_GPSdata);
+      lblFCtime.Caption:=FormatBootTime(GUI_GPSdata);
+      lblFCtimeGPS.Caption:=FormatBootTime(GUI_GPSdata);
+    end;
+
+    52: begin
+      vleSystem.Cells[1, 1]:=GetSYSTEM(msg, LengthFixPartBC, s, dt);
+      vleSystem.Cells[1, 3]:=s;
+      vleSystem.Cells[1, 4]:=dt;
+
+    end;
+
+    56: begin
+      if not ser then begin
+        s:=GetSERIAL(msg, LengthFixPartBC);
+        vleSystem.Cells[1, 2]:=s;
+        Caption:=Application.Title+tab2+s;
+        ser:=true;
+        btnDisableNFZ.Enabled:=UARTConnected;
+        btnEnableNFZ.Enabled:=UARTConnected;
+      end;
+    end;
+    58: if msg.msgbytes[7]=1 then
+      lblOK.Caption:='OK';
+
+    150: begin
+      SENSOR_OFFSETS(msg, LengthFixPartBC, Sensors);
+      FillSENSOR_OFFSETS(sensors);
+    end;
+
+//    172: DATA96;          {Option to record 24 float data from DATA96}
+
+(*    173: begin
+      RANGEFINDER(msg, LengthFixPartBC, Sensors);
+      lblFCtime.Caption:=FormatFloat(floatformat2, Sensors.RangeFinderDist);
+    end;  *)
+
+    193: begin
+      EKF_STATUS_REPORT(msg, LengthFixPartBC, DronePos);
+      FillEKF_STATUS_REPORT(DronePos);
+    end;
+
+    253: GUItext.Lines.Add(STATUSTEXT(msg, LengthFixPartBC, ' '));
+  end;
+end;
+
+procedure TForm1.ActAsGUI(var msg: TMAVmessage; list: TStringList);
+begin
+  ClearGUI;
+  ser:=false;
+  timerGUI.Enabled:=true;
+  while (UART.LastError=0) and UARTConnected do begin
+    if UART.CanRead(0) then begin
+      ReadMessage_BC(msg);
+      if msg.valid then begin
+        ReadGUIMessages(msg);
+        if cbRecord.Checked then
+          RecordMessage(msg, list, LengthFixPartBC);
+        inc(MessagesReceived);
+      end;
+    end;
+    if cbLimitMsg.Checked and (GUItext.Lines.Count>600) then
+      GUItext.Lines.Clear;
+    Application.ProcessMessages;
+  end;
+end;
+
 procedure TForm1.ActAsGimbalChecker(var msg: TMAVmessage; list: TStringList);
 begin
   ClearMessageTables;
   timerYGCcommandLong.Enabled:=true;
   while (UART.LastError=0) and UARTConnected do begin
     if UART.CanRead(0) then begin
-      ReadMessage(msg);
+      ReadMessage_FE(msg);
       if msg.valid then begin
         ReadYGCcameraMessages(msg);
 
 //        ReadGimbalPosition(msg);
 //        FillCharts;
         if cbRecord.Checked then
-          RecordMessage(msg, list);
+          RecordMessage(msg, list, LengthFixPartFE);
+        if cbSensor.Checked then
+          SensorStream.WriteBuffer(msg.msgbytes, msg.msglength+LengthFixPartBC+2);
         inc(MessagesReceived);
       end;
     end;
@@ -815,14 +1487,14 @@ begin
   end;
   while (UART.LastError=0) and UARTConnected do begin
     if UART.CanRead(0) then begin
-      ReadMessage(msg);
+      ReadMessage_FE(msg);
       if msg.valid then begin
         ReadGimbalPosition(msg);
         if lblGimbalVersion.Caption='' then
           lblGimbalVersion.Caption:=GetGIMBAL_FW_VERSION(msg);
         FillCharts;
         if cbRecord.Checked then
-          RecordMessage(msg, list);
+          RecordMessage(msg, list, LengthFixPartFE);
         inc(MessagesReceived);
       end;
     end;
@@ -830,7 +1502,45 @@ begin
   end;
 end;
 
-procedure TForm1.ReadMessage(var msg: TMAVmessage);
+procedure TForm1.ReadMessage_BC(var msg: TMAVmessage);
+var
+  b, len: byte;
+  i: integer;
+
+begin
+  msg.valid:=false;
+  repeat
+    b:=UART.RecvByte(timeout);
+  until (b=MagicBC) or (UART.LastError<>0) or (not UARTConnected);
+  msg.msgbytes[0]:=b;
+  len:=UART.RecvByte(timeout);
+  msg.msgbytes[1]:=len;                     {Message length}
+  msg.msglength:=len;
+  b:=UART.RecvByte(timeout);
+  msg.msgbytes[2]:=b;                       {Sequ number}
+  b:=UART.RecvByte(timeout);
+  if b<>1 then
+    exit;
+  msg.msgbytes[3]:=b;                       {SysID}
+  b:=UART.RecvByte(timeout);
+  if b<>1 then
+    exit;
+  msg.msgbytes[4]:=b;                       {TargetID}
+   b:=UART.RecvByte(timeout);
+  msg.msgbytes[5]:=b;                       {MsgID}
+  msg.msgid:=b;
+  for i:=6 to len+LengthFixPartBC+1 do begin
+    msg.msgbytes[i]:=UART.RecvByte(timeout);
+  end;
+  if CheckCRC16X25(msg, LengthFixPartBC) then begin
+    msg.sysid:=msg.msgbytes[3];
+    msg.targetid:=msg.msgbytes[4];
+    msg.msgid:=msg.msgbytes[5];
+    msg.valid:=true;
+  end;
+end;
+
+procedure TForm1.ReadMessage_FE(var msg: TMAVmessage);
 var
   b, len: byte;
   i: integer;
@@ -842,7 +1552,7 @@ begin
   until (b=MagicFE) or (UART.LastError<>0) or (not UARTConnected);
   msg.msgbytes[0]:=b;
   len:=UART.RecvByte(timeout);
-  msg.msgbytes[1]:=len;                     {Message lenght}
+  msg.msgbytes[1]:=len;                     {Message length}
   msg.msglength:=len;
   b:=UART.RecvByte(timeout);
   msg.msgbytes[2]:=b;                       {Sequ number}
@@ -875,7 +1585,24 @@ procedure TForm1.acDisconnectExecute(Sender: TObject);
 begin
   StopAllTimer;
   DisconnectUART;
+  btnGeoFence.Enabled:=UARTConnected;
+  btnHeightLimit.Enabled:=UARTConnected;
+  btnDisableNFZ.Enabled:=UARTConnected;
+  btnEnableNFZ.Enabled:=UARTConnected;
   StatusBar1.Panels[2].Text:='Disconnected';
+end;
+
+procedure TForm1.acSaveProtExecute(Sender: TObject);
+begin
+  SaveDialog1.FilterIndex:=2;
+  SaveDialog1.FileName:='TextMessages_'+FormatDateTime('yyyymmdd_hhnnss', now)+'.txt';
+  if SaveDialog1.Execute then begin
+    if GUItext.Lines.Count>0 then begin
+      GUItext.Lines.SaveToFile(SaveDialog1.FileName);
+      StatusBar1.Panels[2].Text:=SaveDialog1.FileName+rsSaved;
+      GUItext.Lines.Clear;
+    end;
+  end;
 end;
 
 procedure TForm1.acScanPortsExecute(Sender: TObject);
@@ -919,6 +1646,36 @@ begin
   knPanControl.Position:=2048;
 end;
 
+procedure TForm1.btnDisableNFZClick(Sender: TObject);
+var
+  msg: TMAVmessage;
+
+begin
+  lblOK.Caption:=tab1;
+  if (vleSystem.Cells[1, 2]<>'') and UARTConnected then begin
+    CreateMsg57(msg, vleSystem.Cells[1, 2], 2);
+    if msg.valid then begin
+      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+        inc(MessagesSent);
+    end;
+  end;
+end;
+
+procedure TForm1.btnEnableNFZClick(Sender: TObject);
+var
+  msg: TMAVmessage;
+
+begin
+  lblOK.Caption:=tab1;
+  if (vleSystem.Cells[1, 2]<>'') and UARTConnected then begin
+    CreateMsg57(msg, vleSystem.Cells[1, 2], 8);
+    if msg.valid then begin
+      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+        inc(MessagesSent);
+    end;
+  end;
+end;
+
 procedure SendCommand(const CommandCode: byte);
 var
   msg: TMAVmessage;
@@ -954,6 +1711,31 @@ begin
   rgYGC_Type.ItemIndex:=1;
   SendCommand($15);
 end;
+
+procedure TForm1.btnGeoFenceClick(Sender: TObject);
+var
+  msg: TMAVmessage;
+
+begin
+  CreateGUI_PARAM_SET(msg, pGeoFence, single(speGeoFence.Value));
+  if msg.valid then begin
+    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+      inc(MessagesSent);
+  end;
+end;
+
+procedure TForm1.btnHeightLimitClick(Sender: TObject);
+var
+  msg: TMAVmessage;
+
+begin
+  CreateGUI_PARAM_SET(msg, pHeightLimit, single(speHeightLimit.Value));
+  if msg.valid then begin
+    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+      inc(MessagesSent);
+  end;
+end;
+
 procedure TForm1.btnYawEncCaliClick(Sender: TObject);
 begin
   SendCommand($0C);
@@ -991,6 +1773,7 @@ begin
   if rgYGC_Type.ItemIndex=4 then       {Do not remember Channel_data, it's rare}
     rgYGC_Type.ItemIndex:=0;
   acScanPortsExecute(self);
+  btnConnect.SetFocus;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -1029,6 +1812,46 @@ begin
   end;
   StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
   StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+end;
+
+procedure TForm1.timerGUITimer(Sender: TObject);
+var
+  msg: TMAVmessage;
+
+begin
+  if UARTConnected then begin
+    CreateGUIheartbeat(msg);
+    if msg.valid then begin
+      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+        inc(MessagesSent);
+    end;
+    sleep(wait);
+    CreateGUI_SYS_STATUS(msg);
+    if msg.valid then begin
+      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+        inc(MessagesSent);
+    end;
+    sleep(wait);
+    CreateGUIemptyMsg(msg, 32, 28);                {LOCAL_POSITION_NED}
+    if msg.valid then begin
+      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+        inc(MessagesSent);
+    end;
+    sleep(wait);
+    CreateGUIemptyMsg(msg, 30, 28);                {ATTITUDE}
+    if msg.valid then begin
+      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
+        inc(MessagesSent);
+    end;
+    StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
+    StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+  end;
+  timerSensors.Enabled:=true;
+end;
+
+procedure TForm1.timerSensorsTimer(Sender: TObject);
+begin
+  ResetSensorsStatus;
 end;
 
 procedure TForm1.timerTelemetryTimer(Sender: TObject);
@@ -1076,6 +1899,213 @@ begin
       if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
         inc(MessagesSent);
     end;
+  end;
+end;
+
+// Charts
+
+procedure TForm1.CreateSatSNRBarChart(const sats: TGPSdata);
+var
+  i, NumSatsInUse, NumSatsVisible: integer;
+  IndicatorColor: TColor;
+
+begin
+  ChartSatSNR.DisableRedrawing;
+  BarSatSNR.Clear;
+  NumSatsInUse:=0;
+  ChartSatSNR.Title.Visible:=true;
+  try
+    for i:=0 to MAVsatCount do begin
+      if (sats.sat_used[i]<>0) then begin
+        IndicatorColor:=clSatUsed;
+        inc(NumSatsInUse);
+      end else
+        IndicatorColor:=clSatVisible;
+      SatSNRBarSource.Add(i, sats.sat_snr[i], 'ID'+IntToStr(sats.sat_prn[i]), IndicatorColor);
+    end;
+    NumSatsVisible:=sats.sats_visible;
+    if NumSatsVisible=max8 then
+      NumSatsVisible:=0;
+    ChartSatSNR.Title.Text[0]:=IntToStr(NumSatsVisible)+tab1+rsVisible+tab2+
+                               IntToStr(NumSatsInUse)+tab1+rsInUse;
+    if (NumSatsInUse>0) and (gbPosition.Color<>clSatUsed) then
+      gbPosition.Color:=clSatUsed;
+    if NumSatsInUse=0 then
+      gbPosition.Color:=clSensorOK;
+  finally
+    ChartSatSNR.EnableRedrawing;
+    ChartSatSNR.Repaint;
+  end;
+end;
+
+procedure TForm1.CreateSatPolarDiagram(const sats: TGPSdata);
+var
+  azi, ele: single;
+  IndicatorColor: TColor;
+  i: integer;
+
+begin
+  SatPolar.DisableRedrawing;
+  try
+    SatPolarSeries.Clear;
+    for i:=0 to MAVsatCount do begin
+      if (sats.sat_used[i]<>0) then
+        IndicatorColor:=clSatUsed
+      else
+        IndicatorColor:=clSatVisible;
+      azi:=SatAzimuthToDeg(sats.sat_azimuth[i]);
+      ele:=SatElevationToDeg(sats.sat_elevation[i]);
+      SatPolarSource.Add(azi, ele, 'ID'+IntToStr(sats.sat_prn[i]), IndicatorColor);
+    end;
+    PreparePolarAxes(SatPolar, 90);  {Sat elevation 0: right on top of receiver, 90: on the horizon}
+  finally
+    SatPolar.EnableRedrawing;
+    SatPolar.Repaint;
+  end;
+end;
+
+
+//////////////////////// Polar coordinates diagram /////////////////////////////
+
+{https://www.lazarusforum.de/viewtopic.php?p=66139#p66139
+ wp_xyz
+
+PreparePolarAxes rufst du auf, nachdem deine Daten geladen sind und du weißt,
+wie groß der maximale Radiuswert ist.
+Den brauchst du als Parameter AMax in dieser Prozedur (hier fix auf 90°).
+Damit werden die x- und y-Achsen auf gleichen Wertebereich eingestellt und
+insgesamt komplett ausgeblendet.
+
+DrawPolarAxes wird im OnAfterDrawBackwall-Ereignis des Charts aufgerufen.
+Zu diesem Zeitpunkt sind die Daten noch nicht ausgegeben - es würde sich auch
+OnAfterPaint anbieten, aber damit würden die Achsenkreise über die
+Datenkurven gezeichnet und in der hier gezeigten Implementierung komplett
+übermalt, weil das Hintergrundrechteck mit eingefärbt wird.
+DrawPolarAxes erhält als Parameter wieder den maximalen Radius und den
+Abstand der Kreise. Die komplette Zeichenausgabe ist etwas ungewohnt
+("Chart.Drawer"), weil TAChart eine Zwischenschicht für die Ausgabe
+eingeführt hat, so dass man verschiedene Ausgabe"geräte"
+(BGRABitmap, Vektorformate, Drucker) mit demselben Code ansprechen kann.
+}
+
+procedure TForm1.PreparePolarAxes(AChart: TChart; AMax: Double);
+var
+  ex: TDoubleRect;
+
+begin
+  ex.a.x := -AMax;
+  ex.a.y := -AMax;
+  ex.b.x :=  AMax;
+  ex.b.y :=  AMax;
+  with AChart do begin
+    Extent.FixTo(ex);
+    Proportional := true;
+    Frame.Visible := false;
+    with LeftAxis do begin
+      AxisPen.Visible := false;
+      Grid.Visible := false;
+      PositionUnits := cuGraph;
+      Marks.Visible := false;
+    end;
+    with BottomAxis do begin
+      AxisPen.Visible := false;
+      Grid.Visible := false;
+      PositionUnits := cuGraph;
+      Marks.Visible := false;
+    end;
+  end;
+end;
+
+procedure TForm1.DrawPolarAxes(AChart: TChart; AMax, ADelta: Double; MeasurementUnit: string);
+var
+  xRadius, theta: Double;
+  P1, P2: TPoint;
+  i, h, w: Integer;
+  AxisLabels: string;
+
+begin
+  with AChart do begin
+// Background
+    Drawer.SetBrushParams(bsSolid, Color);
+    Drawer.FillRect(0, 0, Width, Height);
+
+// Radial lines for direction
+    Drawer.SetBrushParams(bsClear, clNone);
+    Drawer.SetPenParams(psDot, clGray);
+    for i:=0 to 5 do begin
+      theta := i * pi/6;
+      P1 := GraphToImage(DoublePoint(AMax*sin(theta), AMax*cos(theta)));
+      P2 := GraphToImage(DoublePoint(-AMax*sin(theta), -AMax*cos(theta)));
+      Drawer.MoveTo(P1);
+      Drawer.Lineto(P2);
+    end;
+
+// Circles
+    xRadius := ADelta;
+    while xRadius <= AMax do begin
+      P1 := GraphToImage(DoublePoint(-xRadius, -xRadius));
+      P2 := GraphToImage(DoublePoint(+xRadius, +xRadius));
+      Drawer.SetPenParams(psDot, clGray);
+      Drawer.SetBrushParams(bsClear, clNone);
+      Drawer.Ellipse(P1.x, P1.y, P2.x, P2.y);
+      xRadius := xRadius + ADelta;
+    end;
+
+// Axis labels
+    Drawer.Font := BottomAxis.Marks.LabelFont;
+    h := Drawer.TextExtent('0').y;
+    xRadius := 0;
+    while xRadius <= AMax do begin
+      AxisLabels := FloatToStr(xRadius)+MeasurementUnit;
+      w := Drawer.TextExtent(AxisLabels).x;
+      P1 := GraphToImage(DoublePoint(0, xRadius));
+      Drawer.TextOut.Pos(P1.X - w div 2, P1.y - h div 2).Text(AxisLabels).Done;
+      xRadius := xRadius + ADelta;
+    end;
+  end;
+end;
+
+{DrawPolarAxes is called in the OnAfterDrawBackwall event of the chart.
+ OnAfterPaint would also be an option, but this would draw the axis circles over the
+ data curves because the background rectangle is also colored.}
+
+procedure TForm1.SatPolarAfterDrawBackWall(ASender: TChart; ACanvas: TCanvas;
+  const ARect: TRect);
+begin
+  DrawPolarAxes(ASender, 90, 15, '°');
+end;
+
+procedure TForm1.PrepareSatPolarDiagram;                 {My settings for the polar diagram}
+begin
+  with SatPolarSeries do begin
+    Source:=SatPolarSource;
+    Marks.Style:=smsLabel;
+    LinePen.Style:=psClear;
+    ShowPoints:=true;
+    Marks.LabelBrush.Color:=clPolarLabel;
+    Pointer.Style:=psHexagon;
+    Pointer.HorizSize:=PolarSatSize;
+    Pointer.VertSize:=PolarSatSize;
+    Pointer.Pen.Style:=psClear;
+    Pointer.Visible:=true;
+  end;
+end;
+
+procedure TForm1.PrepareSatSNRBarChart;                  {My settings for the SNR chart}
+begin
+  with ChartSatSNR do begin                              {for the whole chart}
+    Title.Visible:=false;
+    LeftAxis.Title.Caption:=capSatSNR+' [db]';
+    LeftAxis.Title.Visible:=true;
+    BottomAxis.Marks.Source:=SatSNRBarSource;
+    BottomAxis.Marks.Style:=smsLabel;
+    BottomAxis.Grid.Visible:=false;
+    BottomAxis.Marks.LabelFont.Orientation := 900;       {gedreht}
+  end;
+
+  with BarSatSNR do begin                                {For the bar serie}
+    Source:=SatSNRBarSource;
+    SeriesColor:=clSatUsed;
   end;
 end;
 
