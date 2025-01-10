@@ -222,7 +222,7 @@ type
     procedure StopAllTimer;
     procedure ResetSensorsStatus;
     procedure CreateFCControl(var msg: TMavMessage; SequenceNumber: byte);
-    procedure CreateTelemetry5GHz(var msg: TMavMessage; SequenceNumber: byte);
+    procedure CreateFCTelemetry5GHz(var msg: TMavMessage; SequenceNumber: byte);
     function PanModeToInt: uint16;
     function TiltModeToInt: uint16;
 
@@ -290,7 +290,7 @@ var
 
 
 const
-  AppVersion='V1.1 01/2024';
+  AppVersion='V1.2 2024-01-10';
 
   tab1=' ';
   tab2='  ';
@@ -299,7 +299,8 @@ const
   timeout=100;
   defaultbaud=115200;
   wait=5;
-  AccMin=850;                          {Threshold for accelerometer magnitude (z-axis problem}
+
+  AccMin=850;          {Threshold for accelerometer magnitude (z-axis problem}
   gzoom='16';
 
   clSatUsed=clGreen;
@@ -312,7 +313,7 @@ const
 
 {$IFDEF WINDOWS}
   default_port='COM6';
-{$ELSE}                                                {LINUX}
+{$ELSE}                                                {UNIX like OS}
   default_port='/dev/ttyUSB0';
 {$ENDIF}
 
@@ -375,6 +376,18 @@ function URLosm(lat, lon: string): string;       {URL für Koordinate in OpenStr
 begin
   result:=osmURL+'?mlat='+lat+'&mlon='+lon+'#map='+
           gzoom+'/'+lat+'/'+lon+'&layers=S';
+end;
+
+function SendUARTMessage(const msg: TMAVmessage; LengthFixPart: byte): boolean;
+begin
+  result:=false;
+  if msg.valid then begin
+    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPart+2)>LengthFixPart then begin
+      result:=true;
+      inc(MessagesSent);
+    end;
+  end;
+  sleep(wait);
 end;
 
 procedure TForm1.GridPrepare(var grid: TStringGrid; const NumRows: byte);
@@ -686,7 +699,7 @@ begin
   SetCRC_FE(msg);
 end;
 
-procedure TForm1.CreateTelemetry5GHz(var msg: TMavMessage; SequenceNumber: byte);
+procedure TForm1.CreateFCTelemetry5GHz(var msg: TMavMessage; SequenceNumber: byte);
 begin
   CreateStandardPartMsg(msg, 5);
   msg.msgbytes[2]:=SequenceNumber;
@@ -975,10 +988,7 @@ var
 begin
   if UARTConnected then begin
     CreateYGCcommandMessage(msg);
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
-        inc(MessagesSent);
-    end;
+    SendUARTMessage(msg, LengthFixPartFE);
   end;
   StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
   StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
@@ -1038,35 +1048,19 @@ begin
   end;
 end;
 
-procedure SendParamRequest;
+procedure SendGUIParamRequest;
 var
   msg: TMAVmessage;
 
 begin
   CreateGUI_PARAM_REQUEST_LIST(msg);
-  if msg.valid then begin
-    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-      inc(MessagesSent);
-  end;
-  sleep(wait);
-
+  SendUARTMessage(msg, LengthFixPartBC);
   CreateGUI_MISSION_REQUEST_INT(msg, 1);
-  if msg.valid then begin
-    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-      inc(MessagesSent);
-  end;
-  sleep(wait);
+  SendUARTMessage(msg, LengthFixPartBC);
   CreateGUI_MISSION_REQUEST_INT(msg, 11);
-  if msg.valid then begin
-    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-      inc(MessagesSent);
-  end;
-  sleep(wait);
+  SendUARTMessage(msg, LengthFixPartBC);
   CreateGUI_MISSION_REQUEST_INT(msg, 12);
-  if msg.valid then begin
-    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-      inc(MessagesSent);
-  end;
+  SendUARTMessage(msg, LengthFixPartBC);
 end;
 
 procedure TForm1.FillGUIPosition24(const sats: TGPSdata);
@@ -1327,7 +1321,7 @@ begin
   DronePos:=Default(TAttitudeData);
   case msg.msgid of
     0: begin
-      SendParamRequest;
+      SendGUIParamRequest;
       lblOK.Caption:=tab1;
     end;
     1: begin
@@ -1343,7 +1337,7 @@ begin
 
     22: begin
       s:=PARAM_VALUE(msg, LengthFixPartBC, value);
-//      GUItext.Lines.Add(s+' = '+FormatFloat('0', value));   {Option: Look what else may come}
+//      GUItext.Lines.Add(s+' = '+FormatFloat('0', value)); {Option: Let's look what else may come}
       if s=pGeoFence then
         lblGeoFenceVal.Caption:=FormatFloat('0', value)+'m'
       else
@@ -1417,11 +1411,6 @@ begin
     end;
 
 //    172: DATA96;          {Option to record 24 float data from DATA96}
-
-(*    173: begin
-      RANGEFINDER(msg, LengthFixPartBC, Sensors);
-      lblFCtime.Caption:=FormatFloat(floatformat2, Sensors.RangeFinderDist);
-    end;  *)
 
     193: begin
       EKF_STATUS_REPORT(msg, LengthFixPartBC, DronePos);
@@ -1654,10 +1643,7 @@ begin
   lblOK.Caption:=tab1;
   if (vleSystem.Cells[1, 2]<>'') and UARTConnected then begin
     CreateMsg57(msg, vleSystem.Cells[1, 2], 2);
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-        inc(MessagesSent);
-    end;
+    SendUARTMessage(msg, LengthFixPartBC);
   end;
 end;
 
@@ -1669,47 +1655,41 @@ begin
   lblOK.Caption:=tab1;
   if (vleSystem.Cells[1, 2]<>'') and UARTConnected then begin
     CreateMsg57(msg, vleSystem.Cells[1, 2], 8);
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-        inc(MessagesSent);
-    end;
+    SendUARTMessage(msg, LengthFixPartBC);
   end;
 end;
 
-procedure SendCommand(const CommandCode: byte);
+procedure SendYGCCommand(const CommandCode: byte);
 var
   msg: TMAVmessage;
 
 begin
   if UARTConnected then begin
     CreateYGCcommandMessage(msg, CommandCode);
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
-        inc(MessagesSent);
-    end;
+    SendUARTMessage(msg, LengthFixPartFE);
   end;
 end;
 
 procedure TForm1.btnYawEncErsClick(Sender: TObject);
 begin
-  SendCommand($0D);
+  SendYGCCommand($0D);
 end;
 
 procedure TForm1.btnZeroPhaseErsClick(Sender: TObject);
 begin
-  SendCommand($11);
+  SendYGCCommand($11);
 end;
 
 procedure TForm1.btnAccEraseClick(Sender: TObject);
 begin
   rgYGC_Type.ItemIndex:=2;
-  SendCommand($13);
+  SendYGCCommand($13);
 end;
 
 procedure TForm1.btnFrontErsClick(Sender: TObject);
 begin
   rgYGC_Type.ItemIndex:=1;
-  SendCommand($15);
+  SendYGCCommand($15);
 end;
 
 procedure TForm1.btnGeoFenceClick(Sender: TObject);
@@ -1718,10 +1698,7 @@ var
 
 begin
   CreateGUI_PARAM_SET(msg, pGeoFence, single(speGeoFence.Value));
-  if msg.valid then begin
-    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-      inc(MessagesSent);
-  end;
+  SendUARTMessage(msg, LengthFixPartBC);
 end;
 
 procedure TForm1.btnHeightLimitClick(Sender: TObject);
@@ -1730,35 +1707,32 @@ var
 
 begin
   CreateGUI_PARAM_SET(msg, pHeightLimit, single(speHeightLimit.Value));
-  if msg.valid then begin
-    if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-      inc(MessagesSent);
-  end;
+  SendUARTMessage(msg, LengthFixPartBC);
 end;
 
 procedure TForm1.btnYawEncCaliClick(Sender: TObject);
 begin
-  SendCommand($0C);
+  SendYGCCommand($0C);
 end;
 
 procedure TForm1.btnPreFrontCaliClick(Sender: TObject);
 begin
-  SendCommand($0F);
+  SendYGCCommand($0F);
 end;
 
 procedure TForm1.btnZeroPhaseCaliClick(Sender: TObject);
 begin
-  SendCommand($10);
+  SendYGCCommand($10);
 end;
 
 procedure TForm1.btnAccCaliClick(Sender: TObject);
 begin
-  SendCommand($12);
+  SendYGCCommand($12);
 end;
 
 procedure TForm1.btnVersionClick(Sender: TObject);
 begin
-  SendCommand($18);
+  SendYGCCommand($18);
 end;
 
 procedure TForm1.cbPortDblClick(Sender: TObject);
@@ -1804,11 +1778,8 @@ var
 begin
   if UARTConnected then begin
     CreateFCHeartBeat(msg, SequNumberTransmit);
-    if msg.valid then begin
+    if SendUARTMessage(msg, LengthFixPartFE) then
       IncSequNo8(SequNumberTransmit);
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
-        inc(MessagesSent);
-    end;
   end;
   StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
   StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
@@ -1821,28 +1792,13 @@ var
 begin
   if UARTConnected then begin
     CreateGUIheartbeat(msg);
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-        inc(MessagesSent);
-    end;
-    sleep(wait);
+    SendUARTMessage(msg, LengthFixPartBC);
     CreateGUI_SYS_STATUS(msg);
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-        inc(MessagesSent);
-    end;
-    sleep(wait);
+    SendUARTMessage(msg, LengthFixPartBC);
     CreateGUIemptyMsg(msg, 32, 28);                {LOCAL_POSITION_NED}
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-        inc(MessagesSent);
-    end;
-    sleep(wait);
+    SendUARTMessage(msg, LengthFixPartBC);
     CreateGUIemptyMsg(msg, 30, 28);                {ATTITUDE}
-    if msg.valid then begin
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartBC+2)>LengthFixPartBC then
-        inc(MessagesSent);
-    end;
+    SendUARTMessage(msg, LengthFixPartBC);
     StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
     StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
   end;
@@ -1860,12 +1816,9 @@ var
 
 begin
   if UARTConnected then begin
-    CreateTelemetry5GHz(msg, SequNumberTransmit);
-    if msg.valid then begin
+    CreateFCTelemetry5GHz(msg, SequNumberTransmit);
+    if  SendUARTMessage(msg, LengthFixPartFE) then
       IncSequNo8(SequNumberTransmit);
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
-        inc(MessagesSent);
-    end;
   end;
 end;
 
@@ -1878,12 +1831,8 @@ begin
   if UARTConnected then begin
     for i:= 1 to 5 do begin
       CreateYGCcommandMessageLong(msg, i);
-      if msg.valid then begin
-        if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
-          inc(MessagesSent);
-      end;
+      SendUARTMessage(msg, LengthFixPartFE);
     end;
-    sleep(10);
   end;
 end;
 
@@ -1894,11 +1843,8 @@ var
 begin
   if UARTConnected then begin
     CreateFCControl(msg, SequNumberTransmit);
-    if msg.valid then begin
+    if   SendUARTMessage(msg, LengthFixPartFE) then
       IncSequNo8(SequNumberTransmit);
-      if UART.SendBuffer(@msg.msgbytes, msg.msglength+LengthFixPartFE+2)>LengthFixPartFE then
-        inc(MessagesSent);
-    end;
   end;
 end;
 
