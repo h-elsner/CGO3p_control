@@ -99,6 +99,7 @@ type
     gbAcc: TGroupBox;
     gbGyro: TGroupBox;
     gbMotors: TGroupBox;
+    ImageList1: TImageList;
     picMotors: TImage;
     lblEnableTesting: TLabel;
     lblOK: TLabel;
@@ -300,9 +301,8 @@ var
   MessagesSent, MessagesReceived: integer;
   pan, roll, tilt, voltage: uint16;
 
-
 const
-  AppVersion='V1.3 2024-01-11';
+  AppVersion='V1.3 2024-01-12';
 
   tab1=' ';
   tab2='  ';
@@ -348,6 +348,11 @@ begin
   WriteHeader_GYRO_POWER;
   WriteGUIvalueListHeader;
   cbPort.Hint:=hntPort;
+  acConnect.Caption:=capConnect;
+  acConnect.Hint:=hntConnect;
+  acDisConnect.Caption:=capDisConnect;
+  acDisConnect.Hint:=hntDisConnect;
+  cbSpeed.Hint:=hntSpeed;
 
   lblGeoFenceVal.Hint:=hntGeoFence;
   speGeoFence.Hint:=hntGeoFence;
@@ -384,15 +389,6 @@ begin
   shapeUsed.Pen.Color:=clSatUsed;
   shapeNotUsed.Pen.Color:=clSatVisible;
 
-end;
-
-{ http://wiki.openstreetmap.org/wiki/Browsing
- https://www.openstreetmap.org/?mlat=49.9676&mlon=9.9673#map=10/49.9676/9.9673&layers=Q}
-
-function URLosm(lat, lon: string): string;       {URL für Koordinate in OpenStreetMap}
-begin
-  result:=osmURL+'?mlat='+lat+'&mlon='+lon+'#map='+
-          gzoom+'/'+lat+'/'+lon+'&layers=S';
 end;
 
 function SendUARTMessage(const msg: TMAVmessage; LengthFixPart: byte): boolean;
@@ -579,11 +575,11 @@ begin
   vleBaro.Cells[0, 2]:='Temperature';
   vleBaro.Cells[0, 3]:='Height estimate';
 
-  vleGyro.RowCount:=4;
   SetXYZ(vleGyro);
   vleGyro.Cells[0, 4]:='Gyro cali X';
   vleGyro.Cells[0, 5]:='Gyro cali Y';
   vleGyro.Cells[0, 6]:='Gyro cali Z';
+  vleGyro.Cells[0, 7]:='IMU temperature';
 
   SetXYZ(vleAcc, '[mG]');
   vleAcc.Cells[0, 4]:='Magnitude [mG]';
@@ -596,7 +592,6 @@ begin
   vleMag.Cells[0, 5]:='Mag offset X';
   vleMag.Cells[0, 6]:='Mag offset Y';
   vleMag.Cells[0, 7]:='Mag offset Z';
-//  vleMag.Cells[0, 8]:='Mag declination';
 
   vleOrientation.Cells[0, 1]:='Roll';
   vleOrientation.Cells[0, 2]:='Pitch';
@@ -680,7 +675,7 @@ var
 
 begin
   list.Clear;
-  s:='Time';
+  s:=rsTime;
   for i:=0 to 105 do
     s:=s+';'+Format('%.*d', [2, i]);
   list.Add(s);
@@ -1139,7 +1134,6 @@ begin
   vleMag.Cells[1, 5]:=IntToStr(data.MagOfsX);
   vleMag.Cells[1, 6]:=IntToStr(data.MagOfsY);
   vleMag.Cells[1, 7]:=IntToStr(data.MagOfsZ);
-//  vleMag.Cells[1, 7]:=FormatFloat(floatformat3, data.MagDecl);
 end;
 
 procedure TForm1.FillAttitude(data: TAttitudeData);
@@ -1219,14 +1213,14 @@ begin
   vleSysStatus.Cells[1, 8]:=FormatFloat(floatformat2, data.voltage/1000)+'V';
 
   if (enabld and $10000)=$10000 then                     {Radio SR24}
-    vleSysStatus.Cells[1, 9]:='Enabled';
+    vleSysStatus.Cells[1, 9]:=rsEnabled;
   if (healty and $10000)=$10000 then
-    vleSysStatus.Cells[1, 9]:='Connected';
+    vleSysStatus.Cells[1, 9]:=rsConnected;
 
   if (enabld and $40)=$40 then
-    vleSystem.Cells[1, 5]:='Available'
+    vleSystem.Cells[1, 5]:=rsAvailable
   else
-    vleSystem.Cells[1, 5]:='Not mounted';
+    vleSystem.Cells[1, 5]:=rsNotMounted;
   if (healty and $2000040)=$2000040 then begin           {Real Sense}
     if shapeRSOK.Pen.Color<>clSensorOK then
       shapeRSOK.Pen.Color:=clSensorOK;
@@ -1262,7 +1256,6 @@ begin
     shapeIMUOK.Pen.Color:=clSensorMiss;
   end;
 
-
   if (healty and 8)=8 then begin
     if gbBaro.Color<>clSensorOK then
       gbBaro.Color:=clSensorOK;
@@ -1291,16 +1284,11 @@ var
 begin
   ser:=false;
   btnTurnAll.Enabled:=false;
-
   BarSatSNR.Clear;
   SatPolarSeries.Clear;
   ResetSensorsStatus;     {notwendig?}
-  lblSysTime.Caption:='System time UTC';
+  lblSysTime.Caption:=rsTimeUTC;
   GUItext.Text:='';
-  for i:=1 to vlePosition.RowCount-1 do       {notwendig?}
-    vlePosition.Cells[1, i]:='';
-  for i:=1 to vleVelocity.RowCount-1 do
-    vleVelocity.Cells[1, i]:='';
   for i:=1 to vleSystem.RowCount-1 do
     vleSystem.Cells[1, i]:='';
 
@@ -1316,28 +1304,33 @@ var
   GUI_GPSdata: TGPSdata;
   Sensors: THWstatusData;
   DronePos: TAttitudeData;
+  Values24: TData96;
+
   s, dt: string;
   value: single;
-
-(*  procedure DATA96;
+(*
+  procedure DATA96;     {test only}
   var
     w: single;
     i: byte;
     s: string;
 
   begin
-    s:=lblFCtime.Caption+';'+MAV_PARAM_TYPEtoStr(msg.msgbytes[6]);
+    s:=lblFCtime.Caption;
     for i:=0 to 23 do begin
       w:=MavGetFloat(msg, i*4+8);
-      s:=s+';'+FormatFloat('0.000', w);
+      s:=s+';'+FormatFloat('0,000', w);
     end;
     GUItext.Lines.Add(s);
-  end;   *)
+  end;
+*)
 
 begin
   GUI_GPSdata:=Default(TGPSdata);
   Sensors:=Default(THWstatusData);
   DronePos:=Default(TAttitudeData);
+  Values24:=Default(TData96);
+
   case msg.msgid of
     0: begin
       SendGUIParamRequest;
@@ -1429,7 +1422,10 @@ begin
       FillSENSOR_OFFSETS(sensors);
     end;
 
-//    172: DATA96;          {Option to record 24 float data from DATA96}
+    172: begin
+      DATA96(msg, LengthFixPartBC, Values24);
+      vleGyro.Cells[1, 7]:=FormatFloat(floatformat2, Values24.value[0])+'°C';
+    end;
 
     193: begin
       EKF_STATUS_REPORT(msg, LengthFixPartBC, DronePos);
@@ -1618,6 +1614,7 @@ procedure TForm1.acScanPortsExecute(Sender: TObject);
 var
   cmd: TProcess;
   list: TStringList;
+  i: integer;
 {$ENDIF}
 
 begin
@@ -1631,17 +1628,22 @@ begin
   cmd:=TProcess.Create(nil);
   list:=TStringList.Create;
   try
+    GIMBALtext.Lines.Clear;
     cmd.Options:=cmd.Options+[poWaitOnExit, poUsePipes];
     cmd.Executable:='ls';
-    cmd.Parameters.Clear;
-    cmd.Parameters.Add('-l');
-    cmd.Parameters.Add(cbPort.Text);
-    cmd.Execute;
-    list.LoadFromStream(cmd.Output);
-    if list.Count>0 then
-      StatusBar1.Panels[2].Text:=list[0]
-    else
-      StatusBar1.Panels[2].Text:='Port not available';
+    for i:=0 to cbPort.Items.count-1 do begin
+      cmd.Parameters.Clear;
+      cmd.Parameters.Add(cbPort.Items[i]);
+      cmd.Execute;
+      list.LoadFromStream(cmd.Output);
+      if list.Count>0 then begin
+        StatusBar1.Panels[2].Text:=list[0];
+        GUItext.Lines.Add(list[0]);
+        GIMBALtext.Lines.Add(list[0]);
+      end;
+    end;
+    if GIMBALtext.Lines.Count<1 then
+      StatusBar1.Panels[2].Text:=errNoUSBport;
   finally
     cmd.Free;
     list.Free;
@@ -1703,7 +1705,7 @@ procedure TForm1.btnEnableTestingClick(Sender: TObject);
 begin
   btnTurnAll.Enabled:=false;
   if UARTconnected then begin
-    if MessageDlg('Please confirm', msgPropellerRemoved,
+    if MessageDlg(rsConfirm, msgPropellerRemoved,
                   mtConfirmation, [mbYes, mbNo], 0, mbNo)=mrYes then begin
       btnTurnAll.Enabled:=true;
     end;
@@ -1811,9 +1813,9 @@ end;
 
 procedure TForm1.pcMainChange(Sender: TObject);
 begin
-  StopAllTimer;
-  DisconnectUART;
-  StatusBar1.Panels[2].Text:=rsDisconnected;
+//  StopAllTimer;
+//  DisconnectUART;
+//  StatusBar1.Panels[2].Text:=rsDisconnected;
 end;
 
 {Up to now I had the impression that the motor numbering is counterclockwise.
@@ -1847,31 +1849,31 @@ begin
       hpos:=1;
   if hpos=1 then begin
     if (vpos=1) or (vpos=2) then begin
-      StatusBar1.Panels[2].Text:='Motor 1 selected (A-CW)';
+      StatusBar1.Panels[2].Text:=rsMotor+' 1 '+rsSelected+rsACW;
       MotorCommand.params[0]:=6;                         {Numbering CCW used}
     end;
     if (vpos=3) or (vpos=4) then begin
-      StatusBar1.Panels[2].Text:='Motor 6 selected (B-CCW)';
+      StatusBar1.Panels[2].Text:=rsMotor+' 6 '+rsSelected+rsBCCW;
       MotorCommand.params[0]:=1;
     end;
   end else begin
     if hpos=2 then begin
       if vpos=1 then begin
-        StatusBar1.Panels[2].Text:='Motor 2 selected (B-CCW)';
+        StatusBar1.Panels[2].Text:=rsMotor+' 2 '+rsSelected+rsBCCW;
         MotorCommand.params[0]:=5;
       end;
       if vpos=4 then begin
-        StatusBar1.Panels[2].Text:='Motor 5 selected (A-CW)';
+        StatusBar1.Panels[2].Text:=rsMotor+' 5 '+rsSelected+rsACW;
         MotorCommand.params[0]:=2;
       end;
     end else begin
       if hpos=3 then begin
         if (vpos=1) or (vpos=2) then begin
-          StatusBar1.Panels[2].Text:='Motor 3 selected (A-CW)';
+          StatusBar1.Panels[2].Text:=rsMotor+' 3'+rsSelected+rsACW;
           MotorCommand.params[0]:=4;
         end;
         if (vpos=3) or (vpos=4) then begin
-          StatusBar1.Panels[2].Text:='Motor 4 selected (B-CCW)';
+          StatusBar1.Panels[2].Text:=rsMotor+' 4 '+rsSelected+rsBCCW;
           MotorCommand.params[0]:=3;
         end;
       end;

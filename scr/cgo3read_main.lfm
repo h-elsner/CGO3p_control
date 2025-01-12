@@ -1,12 +1,12 @@
 object Form1: TForm1
-  Left = 1968
-  Height = 899
-  Top = 142
+  Left = 1794
+  Height = 840
+  Top = 137
   Width = 890
   Caption = 'Form1'
-  ClientHeight = 899
+  ClientHeight = 840
   ClientWidth = 890
-  Constraints.MinHeight = 620
+  Constraints.MinHeight = 800
   Constraints.MinWidth = 890
   OnActivate = FormActivate
   OnClose = FormClose
@@ -31,13 +31,13 @@ object Form1: TForm1
       Top = 10
       Width = 152
       ItemHeight = 0
-      ItemIndex = 0
       Items.Strings = (
         '/dev/ttyUSB0'
         '/dev/ttyUSB1'
         '/dev/ttyAMA0'
         '/dev/ttyAMA1'
         '/dev/ttyACM0'
+        '/dev/ttyACM1'
       )
       TabOrder = 0
       Text = '/dev/ttyUSB0'
@@ -47,7 +47,6 @@ object Form1: TForm1
     object cbSpeed: TComboBox
       Left = 16
       Height = 28
-      Hint = 'Select baud rate'
       Top = 50
       Width = 152
       ItemHeight = 0
@@ -68,6 +67,8 @@ object Form1: TForm1
       Top = 8
       Width = 113
       Action = acConnect
+      Images = ImageList1
+      ImageIndex = 3
       TabOrder = 2
     end
     object btnClose: TBitBtn
@@ -77,6 +78,8 @@ object Form1: TForm1
       Width = 113
       Action = acClose
       Anchors = [akTop, akRight]
+      Images = ImageList1
+      ImageIndex = 0
       TabOrder = 3
     end
     object btnDisconnect: TBitBtn
@@ -85,6 +88,8 @@ object Form1: TForm1
       Top = 48
       Width = 113
       Action = acDisconnect
+      Images = ImageList1
+      ImageIndex = 4
       TabOrder = 4
     end
     object cbRecord: TCheckBox
@@ -99,7 +104,7 @@ object Form1: TForm1
   object StatusBar1: TStatusBar
     Left = 0
     Height = 18
-    Top = 881
+    Top = 822
     Width = 890
     Panels = <    
       item
@@ -115,33 +120,37 @@ object Form1: TForm1
   end
   object pcMain: TPageControl
     Left = 0
-    Height = 793
+    Height = 734
     Top = 88
     Width = 890
-    ActivePage = tsGUI
+    ActivePage = tsYGC
     Align = alClient
+    Images = ImageList1
     ParentFont = False
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 2
     OnChange = pcMainChange
     object tsGUI: TTabSheet
       Caption = 'As H480 GUI replacement'
-      ClientHeight = 763
+      ClientHeight = 704
       ClientWidth = 880
+      ImageIndex = 6
       object pcGUI: TPageControl
         Left = 0
-        Height = 748
+        Height = 689
         Top = 15
         Width = 880
-        ActivePage = tsSettings
+        ActivePage = tsSensorInfo
         Align = alClient
+        Images = ImageList1
         ParentFont = False
-        TabIndex = 2
+        TabIndex = 0
         TabOrder = 0
         object tsSensorInfo: TTabSheet
           Caption = 'Sensor information'
-          ClientHeight = 718
+          ClientHeight = 685
           ClientWidth = 870
+          ImageIndex = 8
           object gbSysStatus: TGroupBox
             Left = 8
             Height = 368
@@ -365,8 +374,9 @@ object Form1: TForm1
         end
         object tsGPSinfo: TTabSheet
           Caption = 'GPS information'
-          ClientHeight = 718
+          ClientHeight = 685
           ClientWidth = 870
+          ImageIndex = 7
           object gbPosition: TGroupBox
             Left = 16
             Height = 248
@@ -458,7 +468,7 @@ object Form1: TForm1
           end
           object SatPolar: TChart
             Left = 256
-            Height = 409
+            Height = 376
             Top = 312
             Width = 610
             AxisList = <            
@@ -560,13 +570,14 @@ object Form1: TForm1
         end
         object tsSettings: TTabSheet
           Caption = 'System / Settings'
-          ClientHeight = 718
+          ClientHeight = 685
           ClientWidth = 870
+          ImageIndex = 9
           ParentFont = False
           object cbSensor: TCheckBox
             Left = 8
             Height = 23
-            Top = 632
+            Top = 599
             Width = 81
             Anchors = [akLeft, akBottom]
             Caption = 'cbSensor'
@@ -595,7 +606,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 110
-                215
+                213
               )
             end
           end
@@ -605,7 +616,7 @@ object Form1: TForm1
             Top = 16
             Width = 512
             Caption = 'Flight Boundaries'
-            ClientHeight = 159
+            ClientHeight = 174
             ClientWidth = 510
             TabOrder = 2
             object speGeoFence: TSpinEdit
@@ -727,17 +738,17 @@ object Form1: TForm1
           end
           object gbMessages: TGroupBox
             Left = 352
-            Height = 507
+            Height = 474
             Top = 200
             Width = 512
             Anchors = [akTop, akLeft, akBottom]
             Caption = 'Messages'
-            ClientHeight = 490
+            ClientHeight = 457
             ClientWidth = 510
             TabOrder = 3
             object GUItext: TMemo
               Left = 0
-              Height = 490
+              Height = 457
               Top = 0
               Width = 510
               Align = alClient
@@ -754,7 +765,7 @@ object Form1: TForm1
           object cbLimitMsg: TCheckBox
             Left = 8
             Height = 23
-            Top = 680
+            Top = 647
             Width = 188
             Anchors = [akLeft, akBottom]
             Caption = 'Limit text messages to 600'
@@ -763,10 +774,12 @@ object Form1: TForm1
           object btnSaveMsg: TBitBtn
             Left = 224
             Height = 30
-            Top = 677
+            Top = 644
             Width = 113
             Action = acSaveProt
             Anchors = [akLeft, akBottom]
+            Images = ImageList1
+            ImageIndex = 2
             TabOrder = 5
           end
           object gbMotors: TGroupBox
@@ -775,7 +788,7 @@ object Form1: TForm1
             Top = 200
             Width = 329
             Caption = 'Test motors'
-            ClientHeight = 343
+            ClientHeight = 358
             ClientWidth = 327
             TabOrder = 6
             object btnEnableTesting: TButton
@@ -810,7 +823,7 @@ object Form1: TForm1
             object picMotors: TImage
               Left = 0
               Height = 247
-              Top = 96
+              Top = 111
               Width = 327
               Align = alBottom
               Center = True
@@ -3065,18 +3078,18 @@ object Form1: TForm1
     end
     object tsYGC: TTabSheet
       Caption = 'As gimbal checker for CGO3+'
-      ClientHeight = 763
+      ClientHeight = 704
       ClientWidth = 880
-      ImageIndex = 0
+      ImageIndex = 1
       object panelRight: TPanel
         Left = 754
-        Height = 631
+        Height = 572
         Top = 132
         Width = 126
         Align = alRight
         BevelColor = clRed
         BevelWidth = 2
-        ClientHeight = 631
+        ClientHeight = 572
         ClientWidth = 126
         ParentBackground = False
         ParentColor = False
@@ -3230,7 +3243,7 @@ object Form1: TForm1
       end
       object gridStatus: TStringGrid
         Left = 8
-        Height = 616
+        Height = 557
         Top = 144
         Width = 280
         Anchors = [akTop, akLeft, akBottom]
@@ -3243,7 +3256,7 @@ object Form1: TForm1
       end
       object gridVarious: TStringGrid
         Left = 296
-        Height = 616
+        Height = 557
         Top = 144
         Width = 272
         Anchors = [akTop, akLeft, akBottom]
@@ -3293,8 +3306,9 @@ object Form1: TForm1
     end
     object tsFC: TTabSheet
       Caption = 'As flight controller to CGO3+ (Demo)'
-      ClientHeight = 763
+      ClientHeight = 704
       ClientWidth = 880
+      ImageIndex = 5
       object knPanControl: TmKnob
         Left = 208
         Height = 60
@@ -3483,33 +3497,39 @@ object Form1: TForm1
     end
   end
   object ActionList1: TActionList
+    Images = ImageList1
     Left = 448
     Top = 40
     object acConnect: TAction
       Caption = '&Connect'
+      ImageIndex = 3
       OnExecute = acConnectExecute
     end
     object acClose: TAction
       Caption = 'Close'
+      ImageIndex = 0
       OnExecute = acCloseExecute
     end
     object acDisconnect: TAction
       Caption = '&Disconnect'
+      ImageIndex = 4
       OnExecute = acDisconnectExecute
     end
     object acScanPorts: TAction
       Caption = 'acScanPorts'
+      ImageIndex = 2
       OnExecute = acScanPortsExecute
     end
     object acSaveProt: TAction
       Caption = '&Save'
+      ImageIndex = 2
       OnExecute = acSaveProtExecute
     end
   end
   object XMLPropStorage1: TXMLPropStorage
     StoredValues = <>
-    Left = 600
-    Top = 34
+    Left = 528
+    Top = 40
   end
   object SaveDialog1: TSaveDialog
     Filter = 'CSV file|*.csv|Text files|*.txt|All files|*.*'
@@ -3519,8 +3539,8 @@ object Form1: TForm1
   object timerFCHeartbeat: TTimer
     Enabled = False
     OnTimer = timerFCHeartbeatTimer
-    Left = 456
-    Top = 496
+    Left = 552
+    Top = 448
   end
   object timerFCCommand: TTimer
     Enabled = False
@@ -3551,18 +3571,140 @@ object Form1: TForm1
     Top = 304
   end
   object SatSNRBarSource: TListChartSource
-    Left = 400
-    Top = 616
+    Left = 760
+    Top = 48
   end
   object SatPolarSource: TListChartSource
-    Left = 632
-    Top = 472
+    Left = 848
+    Top = 48
   end
   object timerSensors: TTimer
     Enabled = False
     Interval = 2500
     OnTimer = timerSensorsTimer
-    Left = 520
-    Top = 592
+    Left = 416
+    Top = 552
+  end
+  object ImageList1: TImageList
+    Left = 616
+    Top = 40
+    Bitmap = {
+      4C7A0A00000010000000100000005A0E00000000000078DAED98795454579EC7
+      ABCF187BCC49264E4E26C6F458997427AE1113D4282DC5A222A050B8451A2351
+      110131B4804844400564474A0B50F60ABB5A2CC52E7BB123208BEC8820C822A0
+      B80DA2E0E43BF73E286477C899FFC23BE77BAADEF2B9F7777FCB7DF73EB158CC
+      12135DBF5EC4F6F5BDBD3628A878B978E4DA58D1FB6C767FDDD2A5DDA553DD57
+      57AFF361B13AB16851792B9FCFE78CBD47DB94926ACD19BE2F6A757272D24B4A
+      4A5A3E9E17133E0B2C96081C8E6D5D6C6C2C47D2EF305B0C7AFFA38FD470F8F0
+      61F078BC9C949414F65BBED947F2CCDAB5E1888888D0A3D7A9CDB4DFE1B695B0
+      78F1629C3F7F9E517C7CFC5A09AFABDB72E6CF7FAEEE1F7ECE96D8701C9F7CD2
+      4BFE3F646C62B138E4FC1386B3B7B7EF8D8C8CDC35D107B40D16AB7AA4AF5ABC
+      EDF72488F3606262C2B0D7AF5F3F30950FA958AC17238C44D708AB86E3C78F33
+      7D4FD5EFCCBC0FF1C7DAD1314FC749E23B3CDEB17C10E1B783C4AC7562CCC6C7
+      AF93F8BF77023B2C36FB32484EE84DC7F2F9E51C36BB99F49D37C25C1ED15B1B
+      A4A48272D4D5757D26B234B7162D7AD5CA62358C3EBB628502511A24F9F0564B
+      A1A4A4143296A739FF364E4178EFBDF7B079F366C6571B3736D50DB7F136FE2E
+      2E2E7563F36E3CBF749495E4E7703CA68F7F6C6CFE27274F96EB49499DC9E170
+      D4475989AF4F9EACD6D3D5E587BC2BFEC42E1F4B4B4BE6195F5FDF717EA2B540
+      AF4F9577638F2FBFFCEB978B3EFD8C339DD8ECFFE27CFEF9E77F624D7370D535
+      5CADADAD2191D58824E76666A786A4A5A5E74DC7ABAB715DEDECECE0E0E0804B
+      972E8DCAD1D109F4BAA9E9C93733F1CB962DD3AAA9A9417D5D3DEAEBDFAAB6B6
+      1677EEDCC19E3D7B051F7CF0C174386BD5AA6FB690BEDF886244182BD2FF6F9F
+      FEC767F28B177FFEC574ECFCF9F3E7713872F5A74E9D626C1D2B7A8D3CF26FAC
+      190E69E97586F2F2F28C9FDCDDDDC7895E9B89FFF0C30F3F5052DAD62B2FAF00
+      D94D9C00E2A3CB543B3576575A5959E3F4698BD7D2D26B39D3F10B3F5AB8428E
+      23874D9B640BE9F9FBEFBFFFA7CD8A5B7D2E5FE2A3AEAE0E8D8D8DB87DFB3654
+      5454ADA7E257AE58C5A579BF7EDDF7227ABE71A38C664545258A8B8B919191C1
+      A8ACAC0C858585582BBD6EDF44FEA79F7EF2E672B95056560197ABF16CDF3ECD
+      411313531A6F34373793F8D5316DD0182A6DDDE63A91D7D6D66678C261F7EEDD
+      505353FFCDC0C000868686E8E8E8C0BD7BF7466D50DAAA3C89FFEAABAFD77DFD
+      F55257793905FB952B562A6DFABBEC91868606141614222D2D8D289D190BB55F
+      5171CB85858BBE5DF8AFFFFEEDC29972C1D9D935322525B5BFBABA1A34278B8A
+      8A48FDDDC0EAD5529BFE26F7EB8945EB7F3565BDE3207EDC7B4447F78695A5F5
+      2D3F3FBF371C654367B60C6F079BFB3475E15F143E65CDE22079FFF1474B767E
+      2FB54BECF0FEA70AFF39F65E99E909FC5E49F8A7D9E9283A7200D31D6F5E0DE0
+      D5B33EFC774F27F35C918B038C36AF19C787ECDCC1F8982A3B3B9B8957535313
+      6E17DF42715E0E3293E2911E178D0CED7D20393A89DFBF7A05141414989AA3F1
+      D7D0D0809B8B33E2A323F14F4303C8CA6C8085A9113C55B7A2F22A7F129F7348
+      0BFBF7EF477B7B3B5EBD7A85033FFE88F356968CCDDDF7EAB087BB03153929C8
+      25CF4D653F1D17E569CEF53F7B8AE306FA9097DD849EE67A3C6AA9C56E355594
+      65C433CFE5D89E9DC4A71DD8870D1B36204E14037D5D1D8406F8414D651B4E1C
+      3B8A86E26C7CB77A15823D9C193EDDE2D494FD0FF6BFC0CBBE1E3CEF6A435F5B
+      237A9BAAD0555B82F68A3CB4166730A2CF251AFF3C8997B4F12E51365AFFC824
+      FE71C64D74258A703F32028DA10254FB5D4599873BE32B3A5E6A73DC71030875
+      0E22546BDF387E2AB6C4DD05F90EB6C83A6B81945326E3D8C09DEAE3F8072221
+      EE5D0B81C97E95192561AF2A6F1DC753B64EE0C73C4373EBFBAFFEC2E4ED00C9
+      D9A7EDCD8CDFDCCCF54759CF2D0AE378CAD29CA2BCD4179FE1E0CE6DE3F29FB6
+      4179093B91A72C1D2FE5C57142E4A5DF4431F1E958515EC28EE5E941FFFF1E91
+      83351B35DDB097AB0EB21AAAF0357E597C594F65A6671F8983E675A5F9B33B12
+      3D655AA25DB90D11369EF511B6A88B744555C40564DBEF7B391DDB932958D079
+      D3BBE04182075A62DDD128744663941B9A12BD51177309A57E66483EBD75703A
+      BE23D1CBBC3D35009D7942B46586A239C51F0D711EA80C3987CA707BA49DDB85
+      684339F9A9D8BB69DE4BF3E31DFEA72D33042DC9BEA8B9E6808A206B94F89E44
+      59F07964B9EA406820EB35B5CDBE31A971FCD7BFE4DB225164837A11798746F3
+      70EBEA09E4F2F450E4678E5893ED08DEBF813B96EDCE089CD7917CB5B13D4D00
+      AA5FC3EDDF98679F8388B7FF4DE195132809B444BABD1672F93F23FC883C7C77
+      7E27336EBC097CF6FD58DEF078B342511FE58E6B9E26834217CD5F424FABBC49
+      BBA00D31EF18D25D0EC37FF77A5CDEFA0D7B2C7F2FCA49E62EF1716B46306A6F
+      38A221DE13658233F0723E3864946E058F13DB203AA581501D45F0B6AC6A7455
+      5C3E6F2C5F1B6CC5AD0E39CBC487FAAAD4D70CE5A17628F23587B59B2E0C6F9E
+      81DBCEF543EE8A2B639C14962D98E8BB326FA3D82AE2E7DA4877DCF23641DE25
+      0364B91C440E4F9FF85B17E70C94871CB8D22BA68A57A9E731D3B20073D444BA
+      A184F8B7F4572BC6CFF95E279831471AA9C05BFD3BF3A95892C326A53E26A808
+      B161EC2D66FCAC8D18135544E82A20507323AE6EFFB680B7E59B0553F1B94E5A
+      280FB6C66D921762373D884C5511A6BDD14BA0B98EEB4D62E4A92AC5E66D5939
+      6FBA3C4DB5DC0EB1F3416439EB20C64899E685E26CEA31D6587191F018071107
+      655E0A34D7CBCFB69EDFA5A70537E63DCA0D6593FC942135C525756C46EA78B0
+      2AD03C99F87DFE4CEC93BC88058F32830ABAD202D09E7415F7E3F86824B54073
+      A49CE456AE8366F24C3CE9D3FCA13814DD452274E45E6772B329C90735421754
+      8492FA329FBEFE491DCE6F8BE50D74655FC3FD5401EAC99C7327CC166501BF90
+      FABF804C8703883AC6319BA97F324EFB06A1131AE33C993A2EF13165F2B2C8FF
+      34E24C27D7F0C89CC70E0C0CF4F7F1F111D0F342DE512B32CE015AFF2502AB91
+      1A3E4E6A588EE6E4680D3FCE0D5B40E68F98B218DF57C9C9C9484F27F3BD9B1B
+      D30619A76CB491C2CB34BB03249FF591E672083E3BD7D23A648F99671B1F8A43
+      D0911582C40097A1E8E868BA0E129C3973E65FC8BEF363921FB224275F4699AA
+      21F8A03CDC1557343AC92F9B37EC2B6F369D671F1644E181381C77453C245C34
+      799DEDA42D475881BEBE7E3D59A37FE6B57D8D2CE9B39FD47E8C83DCD7A3F570
+      3FDA4DE65EB41B33CFD6933984CE1D34BE21A7FF31E8E1E141F79DF8E1871FEA
+      C91AFD63D2277BA2CFEAC2CE71EBC26D99D84AE6D97212DF421F3338FFFC0FB2
+      FF7224FB02AE60BA3895791B9B5504598D9B67339C88AFC8BC93EE741876BB64
+      07AD776C9CB27E6F7B19CE2F703B3458196E8752812533CFD27EE93C9B79F128
+      AE1D5322EB4529F3E9FACE73DA3F58C03760EA3FFF8A31922CF74068B80D213F
+      7124F36C01F1F58269EBDF6A7B7296E301A49CDD87089DBF0F921A36F3DB25CD
+      F5525D2343E33B719E9D28D1098505423DD9E450ED8D83817BD7CDFFFFAE7F89
+      161FDFE044F49C0823BF4E927B16161634BE18DEC32983EE63E93A76CD9A3558
+      BE7C3996287F83E56E7BA09B7A115E77E2985F7A4EDA70A3BCAFAF2F2A2B2B51
+      525282BCBC3C26F713121220140A111212822F8C64A193EA8A43A98ECC5AEA50
+      8A23F4D379941FA07C707030B367888989A1DF4EE8371A787A7A82E43E8C8D8D
+      F19DA51AFCAB93C6ADC7A81D742C940F0D0DDD4BF45A2010903DA7E9122D2D2D
+      FC48D6FE2A2A2AF47B11B6DA1FC0A5AA58F06B6319F668BADBB8FEA9C2C2C2F6
+      06040494DBD8D888E2E3E399FD62565616323333E126F4C661A10DBCAA1390DA
+      5901C3341E56F33447C74FE5EFEFBF84CFE7DFA4FB54CA070505815CA3DF7298
+      DFF301AEF8D1D3181AEE7A50B8A0F542EAB4AAD5D8F8907A37CECDCD65F6EAD4
+      0FD49F4F9F3EC593274F987D54787838E3232B2B2B1A23E389F1257626DFBD7B
+      97E17B7A7AD058594ADEA797F120DA059D0D55CC9E88C6272A2A8AC679D2BC4D
+      F6B73D0F1F3E64F6DAAF5FBF46A80F1FED64CDD57BD3075DB197303030C0F0A5
+      A5A5D0D4D4EC99C893BD7DCFA3478FF0E0C1030C0E12DECF138D29C1E8480B22
+      73EF1586A7E3A0F6E9E8E84CE2C97E3DF9F1E3C78CED2F5EBC404B7529C2481B
+      A1BE1E68AA2C46777737AAAAAA505E5E0E2323A349F6B7B6B61A53F6F9F3E78C
+      CFFAFBFB313438C8D842DBA5FDB6B4B42025250567CF9E9DE4BFCECECE2544A2
+      67CF9E316C5F5F1F13FBD4D454DCBF7F9F19176D83BC1B4457AE5C5932558D11
+      FFC9103B4594A536D0B668DFA45D8625752122719699F19DD9DDBDA4B7B7D798
+      FC26937D680F19570FD9432713FFD2FC58F27B6A9FD86C4C72B0D6CFCF6F88BC
+      D78666C3929A30265C3FCD1F3A2E32F659ED39085BDBD6D686AEAE2EC6F7F47D
+      321BDEDBDB7B88F64DE34EEA2B875EA3DFD4C8BB95CE13EF1C0BB1F70DCDE9FC
+      FC7C3AB7645FBC783137323292F92E46DE4B33F25E5E5E2AC4DEDFE83720FAFD
+      87CE6B341F7272729879CEDEDEBE762AEE41942BBF31C2A99CD83B446B96D60C
+      FD2D282800AD71B1588C0B172EF4DBDADA4ECAC3D6EBCEFC2E52779D49DEA8BF
+      EEC67C334B4C4C84B3B3F36FD45ED2E7105917D492796A0AD691DF99EC8F27E5
+      E9E82B4B451B79A7DFF1B3A4DFFE071C1C1CFE36D3585B23EC09EB43B834748B
+      23F03023048F8AE2D1126A833BCEDAB766625BC2ECF89D09DEE8BB9D8AEEAC30
+      74245C41574A007A0BA2D12CB0408DDDAE1BD3B3E7F89D64BDD1577A13DD9984
+      25FF3B93FDD0931785E6C0D3A8B2D1889CA9EF7BA4FDC7A5C98CBDEDB17CE237
+      5FF4E446A2D9DF0C55E7D423DF951F77C97AE3311967D74D3FD031F4E40A097B
+      1295D6AA31FF97FC6CB87CB494FAA82747881EF1353491BD48A5A572CC6C72BC
+      C651B386F888F4B90395164AB362B194FCCC694E73FA43EA4BCC694E73FAA3EA
+      9F641A98D39CE6F4C7D4FF0228A4C2FE
+    }
   end
 end
