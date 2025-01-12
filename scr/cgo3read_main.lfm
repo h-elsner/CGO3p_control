@@ -401,7 +401,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 120
-                96
+                79
               )
             end
           end
@@ -428,7 +428,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 120
-                96
+                79
               )
             end
           end
@@ -549,7 +549,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 120
-                96
+                79
               )
             end
           end
@@ -607,7 +607,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 110
-                211
+                194
               )
             end
           end

@@ -1617,12 +1617,12 @@ begin
 end;
 
 procedure TForm1.acScanPortsExecute(Sender: TObject);
-{$IFDEF LINUX}
 var
+{$IFDEF UNIX}
   cmd: TProcess;
   list: TStringList;
-  i: integer;
 {$ENDIF}
+  i: integer;
 
 begin
 {$IFDEF WINDOWS}
@@ -1630,8 +1630,17 @@ begin
   cbPort.Items.Clear;
   cbPort.Items.CommaText:=GetSerialPortNames;
   cbPort.Text:=cbPort.Items[cbPort.Items.Count-1];
+  if cbPort.Items.Count>0 then begin
+    for i:=0 to  cbPort.Items.Count-1 do begin
+      GUItext.Lines.Add(cbPort.Items[i]);                {Make for Win same as for LINUX}
+      GIMBALtext.Lines.Add(cbPort.Items[i]);
+    end;
+    StatusBar1.Panels[2].Text:=cbPort.Items[i];
+  end else
+    StatusBar1.Panels[2].Text:=errNoUSBport;
+
 {$ENDIF}
-{$IFDEF LINUX}
+{$IFDEF UNIX}
   cmd:=TProcess.Create(nil);
   list:=TStringList.Create;
   try
