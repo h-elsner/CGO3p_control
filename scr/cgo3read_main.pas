@@ -100,6 +100,7 @@ type
     gbGyro: TGroupBox;
     gbMotors: TGroupBox;
     ImageList1: TImageList;
+    lbIIESCOK: TLabel;
     picMotors: TImage;
     lblEnableTesting: TLabel;
     lblOK: TLabel;
@@ -159,6 +160,7 @@ type
     SaveDialog1: TSaveDialog;
     shapeGPSOK: TShape;
     shapeIMUOK: TShape;
+    shapeESCOK: TShape;
     shapeNotUsed: TShape;
     shapeRSOK: TShape;
     shapeSonar: TShape;
@@ -1247,7 +1249,12 @@ begin
     data.sensors_OK:=false;
     gbMag.Color:=clSensorMiss;
   end;
-
+  if (healty and $8000)=$8000 then begin
+    if shapeESCOK.Pen.Color<>clSensorOK then
+      shapeESCOK.Pen.Color:=clSensorOK;
+  end else begin
+    shapeESCOK.Pen.Color:=clSensorMiss;
+  end;
   if (healty and $0F)=$0F then begin                     {Gyro, Acc, Mag and Baro}
     if shapeIMUOK.Pen.Color<>clSensorOK then
       shapeIMUOK.Pen.Color:=clSensorOK;

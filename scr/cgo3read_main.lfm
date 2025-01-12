@@ -26,11 +26,12 @@ object Form1: TForm1
     TabOrder = 0
     object cbPort: TComboBox
       Left = 16
-      Height = 28
+      Height = 25
       Hint = 'Select serial port'
       Top = 10
       Width = 152
-      ItemHeight = 0
+      ItemHeight = 17
+      ItemIndex = 0
       Items.Strings = (
         '/dev/ttyUSB0'
         '/dev/ttyUSB1'
@@ -46,10 +47,10 @@ object Form1: TForm1
     end
     object cbSpeed: TComboBox
       Left = 16
-      Height = 28
+      Height = 25
       Top = 50
       Width = 152
-      ItemHeight = 0
+      ItemHeight = 17
       Items.Strings = (
         '14400'
         '19200'
@@ -94,17 +95,17 @@ object Form1: TForm1
     end
     object cbRecord: TCheckBox
       Left = 336
-      Height = 23
+      Height = 21
       Top = 13
-      Width = 82
+      Width = 74
       Caption = 'cbRecord'
       TabOrder = 5
     end
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Height = 18
-    Top = 822
+    Height = 23
+    Top = 817
     Width = 890
     Panels = <    
       item
@@ -120,26 +121,26 @@ object Form1: TForm1
   end
   object pcMain: TPageControl
     Left = 0
-    Height = 734
+    Height = 729
     Top = 88
     Width = 890
-    ActivePage = tsYGC
+    ActivePage = tsGUI
     Align = alClient
     Images = ImageList1
     ParentFont = False
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 2
     OnChange = pcMainChange
     object tsGUI: TTabSheet
       Caption = 'As H480 GUI replacement'
-      ClientHeight = 704
-      ClientWidth = 880
+      ClientHeight = 699
+      ClientWidth = 882
       ImageIndex = 6
       object pcGUI: TPageControl
         Left = 0
-        Height = 689
+        Height = 684
         Top = 15
-        Width = 880
+        Width = 882
         ActivePage = tsSensorInfo
         Align = alClient
         Images = ImageList1
@@ -148,8 +149,8 @@ object Form1: TForm1
         TabOrder = 0
         object tsSensorInfo: TTabSheet
           Caption = 'Sensor information'
-          ClientHeight = 685
-          ClientWidth = 870
+          ClientHeight = 654
+          ClientWidth = 874
           ImageIndex = 8
           object gbSysStatus: TGroupBox
             Left = 8
@@ -157,8 +158,8 @@ object Form1: TForm1
             Top = 8
             Width = 325
             Caption = 'System status'
-            ClientHeight = 366
-            ClientWidth = 323
+            ClientHeight = 346
+            ClientWidth = 321
             TabOrder = 0
             object vleSysStatus: TValueListEditor
               Left = 0
@@ -179,11 +180,11 @@ object Form1: TForm1
             object SensorLEDPanel: TPanel
               Left = 0
               Height = 90
-              Top = 276
-              Width = 323
+              Top = 256
+              Width = 321
               Align = alBottom
               ClientHeight = 90
-              ClientWidth = 323
+              ClientWidth = 321
               ParentBackground = False
               ParentColor = False
               TabOrder = 1
@@ -198,9 +199,9 @@ object Form1: TForm1
               end
               object lbIGPSOK: TLabel
                 Left = 48
-                Height = 16
+                Height = 17
                 Top = 16
-                Width = 24
+                Width = 23
                 Caption = 'GPS'
               end
               object shapeIMUOK: TShape
@@ -214,7 +215,7 @@ object Form1: TForm1
               end
               object lbIIMUOK: TLabel
                 Left = 144
-                Height = 16
+                Height = 17
                 Top = 16
                 Width = 24
                 Caption = 'IMU'
@@ -230,9 +231,9 @@ object Form1: TForm1
               end
               object lbISonar: TLabel
                 Left = 240
-                Height = 16
+                Height = 17
                 Top = 16
-                Width = 35
+                Width = 34
                 Caption = 'Sonar'
               end
               object shapeRSOK: TShape
@@ -246,17 +247,33 @@ object Form1: TForm1
               end
               object lbIRSOK: TLabel
                 Left = 240
-                Height = 16
+                Height = 17
                 Top = 56
                 Width = 63
                 Caption = 'Real Sense'
               end
               object lblFCtime: TLabel
                 Left = 16
-                Height = 16
+                Height = 17
                 Top = 55
-                Width = 59
+                Width = 56
                 Caption = 'Boot time'
+              end
+              object lbIIESCOK: TLabel
+                Left = 144
+                Height = 17
+                Top = 56
+                Width = 22
+                Caption = 'ESC'
+              end
+              object shapeESCOK: TShape
+                Left = 112
+                Height = 17
+                Top = 55
+                Width = 24
+                Pen.Color = clRed
+                Pen.Width = 12
+                Shape = stCircle
               end
             end
           end
@@ -266,14 +283,14 @@ object Form1: TForm1
             Top = 8
             Width = 248
             Caption = 'Accelerometer'
-            ClientHeight = 207
-            ClientWidth = 246
+            ClientHeight = 202
+            ClientWidth = 244
             TabOrder = 3
             object vleAcc: TValueListEditor
               Left = 0
-              Height = 207
+              Height = 202
               Top = 0
-              Width = 246
+              Width = 244
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -281,10 +298,6 @@ object Form1: TForm1
               TabOrder = 0
               TabStop = False
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
-              ColWidths = (
-                120
-                122
-              )
             end
           end
           object gbGyro: TGroupBox
@@ -293,17 +306,17 @@ object Form1: TForm1
             Top = 8
             Width = 248
             Caption = 'Gyro'
-            ClientHeight = 207
-            ClientWidth = 246
+            ClientHeight = 202
+            ClientWidth = 244
             Color = 26111
             ParentBackground = False
             ParentColor = False
             TabOrder = 2
             object vleGyro: TValueListEditor
               Left = 0
-              Height = 207
+              Height = 202
               Top = 0
-              Width = 246
+              Width = 244
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -311,10 +324,6 @@ object Form1: TForm1
               TabOrder = 0
               TabStop = False
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
-              ColWidths = (
-                120
-                122
-              )
             end
           end
           object gbBaro: TGroupBox
@@ -323,14 +332,14 @@ object Form1: TForm1
             Top = 248
             Width = 248
             Caption = 'Pressure sensor'
-            ClientHeight = 111
-            ClientWidth = 246
+            ClientHeight = 106
+            ClientWidth = 244
             TabOrder = 1
             object vleBaro: TValueListEditor
               Left = 0
-              Height = 111
+              Height = 106
               Top = 0
-              Width = 246
+              Width = 244
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -338,10 +347,6 @@ object Form1: TForm1
               TabOrder = 0
               TabStop = False
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goAlwaysShowEditor, goThumbTracking]
-              ColWidths = (
-                120
-                122
-              )
             end
           end
           object gbOrientation: TGroupBox
@@ -350,14 +355,14 @@ object Form1: TForm1
             Top = 248
             Width = 248
             Caption = 'Orientation'
-            ClientHeight = 111
-            ClientWidth = 246
+            ClientHeight = 106
+            ClientWidth = 244
             TabOrder = 4
             object vleOrientation: TValueListEditor
               Left = 0
-              Height = 111
+              Height = 106
               Top = 0
-              Width = 246
+              Width = 244
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -365,17 +370,13 @@ object Form1: TForm1
               TabOrder = 0
               TabStop = False
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
-              ColWidths = (
-                120
-                122
-              )
             end
           end
         end
         object tsGPSinfo: TTabSheet
           Caption = 'GPS information'
-          ClientHeight = 685
-          ClientWidth = 870
+          ClientHeight = 654
+          ClientWidth = 874
           ImageIndex = 7
           object gbPosition: TGroupBox
             Left = 16
@@ -383,14 +384,14 @@ object Form1: TForm1
             Top = 16
             Width = 224
             Caption = 'Position'
-            ClientHeight = 231
-            ClientWidth = 222
+            ClientHeight = 226
+            ClientWidth = 220
             TabOrder = 0
             object vlePosition: TValueListEditor
               Left = 0
-              Height = 231
+              Height = 226
               Top = 0
-              Width = 222
+              Width = 220
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -400,7 +401,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 120
-                98
+                96
               )
             end
           end
@@ -410,14 +411,14 @@ object Form1: TForm1
             Top = 512
             Width = 224
             Caption = 'Velocity [m/s]'
-            ClientHeight = 159
-            ClientWidth = 222
+            ClientHeight = 154
+            ClientWidth = 220
             TabOrder = 1
             object vleVelocity: TValueListEditor
               Left = 0
-              Height = 159
+              Height = 154
               Top = 0
-              Width = 222
+              Width = 220
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -427,7 +428,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 120
-                98
+                96
               )
             end
           end
@@ -435,7 +436,7 @@ object Form1: TForm1
             Left = 256
             Height = 264
             Top = 16
-            Width = 610
+            Width = 614
             AxisList = <            
               item
                 Marks.LabelBrush.Style = bsClear
@@ -468,9 +469,9 @@ object Form1: TForm1
           end
           object SatPolar: TChart
             Left = 256
-            Height = 376
+            Height = 345
             Top = 312
-            Width = 610
+            Width = 614
             AxisList = <            
               item
                 Marks.LabelBrush.Style = bsClear
@@ -504,9 +505,9 @@ object Form1: TForm1
           end
           object lblNotUsed: TLabel
             Left = 464
-            Height = 16
+            Height = 17
             Top = 288
-            Width = 55
+            Width = 54
             Caption = 'Not used'
           end
           object shapeUsed: TShape
@@ -520,9 +521,9 @@ object Form1: TForm1
           end
           object lblSatUsed: TLabel
             Left = 552
-            Height = 16
+            Height = 17
             Top = 288
-            Width = 119
+            Width = 116
             Caption = 'Used for calculation'
           end
           object gbMag: TGroupBox
@@ -531,14 +532,14 @@ object Form1: TForm1
             Top = 280
             Width = 224
             Caption = 'Compass'
-            ClientHeight = 207
-            ClientWidth = 222
+            ClientHeight = 202
+            ClientWidth = 220
             TabOrder = 4
             object vleMag: TValueListEditor
               Left = 0
-              Height = 207
+              Height = 202
               Top = 0
-              Width = 222
+              Width = 220
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -548,37 +549,37 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 120
-                98
+                96
               )
             end
           end
           object lblFCtimeGPS: TLabel
-            Left = 794
-            Height = 16
+            Left = 801
+            Height = 17
             Top = 289
-            Width = 59
+            Width = 56
             Anchors = [akTop, akRight]
             Caption = 'Boot time'
           end
           object lblSysTime: TLabel
             Left = 256
-            Height = 16
+            Height = 17
             Top = 289
-            Width = 100
+            Width = 97
             Caption = 'System time UTC'
           end
         end
         object tsSettings: TTabSheet
           Caption = 'System / Settings'
-          ClientHeight = 685
-          ClientWidth = 870
+          ClientHeight = 654
+          ClientWidth = 874
           ImageIndex = 9
           ParentFont = False
           object cbSensor: TCheckBox
             Left = 8
-            Height = 23
-            Top = 599
-            Width = 81
+            Height = 21
+            Top = 570
+            Width = 72
             Anchors = [akLeft, akBottom]
             Caption = 'cbSensor'
             TabOrder = 0
@@ -589,14 +590,14 @@ object Form1: TForm1
             Top = 16
             Width = 329
             Caption = 'Device information'
-            ClientHeight = 159
-            ClientWidth = 327
+            ClientHeight = 154
+            ClientWidth = 325
             TabOrder = 1
             object vleSystem: TValueListEditor
               Left = 0
-              Height = 159
+              Height = 154
               Top = 0
-              Width = 327
+              Width = 325
               Align = alClient
               DefaultColWidth = 110
               FixedCols = 0
@@ -606,7 +607,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 110
-                213
+                211
               )
             end
           end
@@ -616,12 +617,12 @@ object Form1: TForm1
             Top = 16
             Width = 512
             Caption = 'Flight Boundaries'
-            ClientHeight = 174
-            ClientWidth = 510
+            ClientHeight = 154
+            ClientWidth = 508
             TabOrder = 2
             object speGeoFence: TSpinEdit
               Left = 253
-              Height = 28
+              Height = 25
               Top = 24
               Width = 82
               MaxValue = 2500
@@ -631,7 +632,7 @@ object Form1: TForm1
             end
             object speHeightLimit: TSpinEdit
               Left = 253
-              Height = 28
+              Height = 25
               Top = 64
               Width = 82
               MaxValue = 1000
@@ -641,44 +642,44 @@ object Form1: TForm1
             end
             object lblNewValue: TLabel
               Left = 253
-              Height = 16
+              Height = 17
               Top = 0
-              Width = 61
+              Width = 60
               Caption = 'New value'
             end
             object lblCurrentValue: TLabel
               Left = 160
-              Height = 16
+              Height = 17
               Top = 0
-              Width = 80
+              Width = 77
               Caption = 'Current value'
             end
             object lblGeoFence: TLabel
               Left = 8
-              Height = 16
+              Height = 17
               Top = 28
-              Width = 134
+              Width = 129
               Caption = 'Geo fence (20-2500m)'
             end
             object lblHeightLimit: TLabel
               Left = 8
-              Height = 16
+              Height = 17
               Top = 65
-              Width = 143
+              Width = 136
               Caption = 'Height limit (20-1000m)'
             end
             object lblGeoFenceVal: TLabel
               Left = 176
-              Height = 16
+              Height = 17
               Top = 28
-              Width = 24
+              Width = 21
               Caption = '100'
             end
             object lblHeightLimitVal: TLabel
               Left = 176
-              Height = 16
+              Height = 17
               Top = 65
-              Width = 24
+              Width = 21
               Caption = '120'
             end
             object btnGeoFence: TButton
@@ -728,9 +729,9 @@ object Form1: TForm1
             end
             object lblOK: TLabel
               Left = 456
-              Height = 16
+              Height = 17
               Top = 112
-              Width = 3
+              Width = 4
               Caption = ' '
               Font.Style = [fsBold]
               ParentFont = False
@@ -738,19 +739,19 @@ object Form1: TForm1
           end
           object gbMessages: TGroupBox
             Left = 352
-            Height = 474
+            Height = 443
             Top = 200
             Width = 512
             Anchors = [akTop, akLeft, akBottom]
             Caption = 'Messages'
-            ClientHeight = 457
-            ClientWidth = 510
+            ClientHeight = 421
+            ClientWidth = 508
             TabOrder = 3
             object GUItext: TMemo
               Left = 0
-              Height = 457
+              Height = 421
               Top = 0
-              Width = 510
+              Width = 508
               Align = alClient
               Font.Height = -16
               Font.Name = 'Courier New'
@@ -764,9 +765,9 @@ object Form1: TForm1
           end
           object cbLimitMsg: TCheckBox
             Left = 8
-            Height = 23
-            Top = 647
-            Width = 188
+            Height = 21
+            Top = 618
+            Width = 173
             Anchors = [akLeft, akBottom]
             Caption = 'Limit text messages to 600'
             TabOrder = 4
@@ -774,7 +775,7 @@ object Form1: TForm1
           object btnSaveMsg: TBitBtn
             Left = 224
             Height = 30
-            Top = 644
+            Top = 613
             Width = 113
             Action = acSaveProt
             Anchors = [akLeft, akBottom]
@@ -788,8 +789,8 @@ object Form1: TForm1
             Top = 200
             Width = 329
             Caption = 'Test motors'
-            ClientHeight = 358
-            ClientWidth = 327
+            ClientHeight = 338
+            ClientWidth = 325
             TabOrder = 6
             object btnEnableTesting: TButton
               Left = 8
@@ -812,9 +813,9 @@ object Form1: TForm1
             end
             object lblEnableTesting: TLabel
               Left = 8
-              Height = 16
+              Height = 17
               Top = 16
-              Width = 106
+              Width = 102
               Caption = 'lblEnableTesting'
               Font.Color = clRed
               Font.Style = [fsBold]
@@ -823,8 +824,8 @@ object Form1: TForm1
             object picMotors: TImage
               Left = 0
               Height = 247
-              Top = 111
-              Width = 327
+              Top = 91
+              Width = 325
               Align = alBottom
               Center = True
               OnMouseDown = picMotorsMouseDown
@@ -3053,10 +3054,10 @@ object Form1: TForm1
             end
             object cbHighRPM: TCheckBox
               Left = 128
-              Height = 23
+              Height = 21
               Hint = 'Handle with care'
               Top = 50
-              Width = 85
+              Width = 76
               Caption = 'High RPM'
               TabOrder = 2
             end
@@ -3067,7 +3068,7 @@ object Form1: TForm1
         Left = 0
         Height = 15
         Top = 0
-        Width = 880
+        Width = 882
         Align = alTop
         Caption = 'Yuneec Typhoon H GUI replacement'
         Color = clSilver
@@ -3078,18 +3079,18 @@ object Form1: TForm1
     end
     object tsYGC: TTabSheet
       Caption = 'As gimbal checker for CGO3+'
-      ClientHeight = 704
-      ClientWidth = 880
+      ClientHeight = 699
+      ClientWidth = 882
       ImageIndex = 1
       object panelRight: TPanel
-        Left = 754
-        Height = 572
+        Left = 756
+        Height = 567
         Top = 132
         Width = 126
         Align = alRight
         BevelColor = clRed
         BevelWidth = 2
-        ClientHeight = 572
+        ClientHeight = 567
         ClientWidth = 126
         ParentBackground = False
         ParentColor = False
@@ -3161,9 +3162,9 @@ object Form1: TForm1
         end
         object lblPowerCycle: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 271
-          Width = 97
+          Width = 96
           Caption = 'Power cycle cam'
         end
         object btnAccCali: TButton
@@ -3181,13 +3182,13 @@ object Form1: TForm1
         Left = 0
         Height = 132
         Top = 0
-        Width = 880
+        Width = 882
         Align = alTop
         ClientHeight = 132
-        ClientWidth = 880
+        ClientWidth = 882
         TabOrder = 1
         object GIMBALtext: TMemo
-          Left = 482
+          Left = 484
           Height = 130
           Top = 1
           Width = 397
@@ -3203,37 +3204,37 @@ object Form1: TForm1
         end
         object lblBootTime: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 40
-          Width = 78
+          Width = 77
           Caption = 'Boot time [s]:'
         end
         object lblGimbalBootTime: TLabel
           Left = 128
-          Height = 16
+          Height = 17
           Top = 40
-          Width = 71
+          Width = 68
           Caption = 'Time stamp'
         end
         object lblSerialNo: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 64
-          Width = 86
+          Width = 84
           Caption = 'Serial number:'
         end
         object lblSerial: TLabel
           Left = 128
-          Height = 16
+          Height = 17
           Top = 64
           Width = 95
           Caption = 'Gimbal serial no'
         end
         object lblWarning: TLabel
           Left = 8
-          Height = 19
+          Height = 21
           Top = 8
-          Width = 360
+          Width = 364
           Caption = 'No warranty. You use this tool on your own risk!'
           Font.Color = clRed
           Font.Height = -16
@@ -3243,7 +3244,7 @@ object Form1: TForm1
       end
       object gridStatus: TStringGrid
         Left = 8
-        Height = 557
+        Height = 552
         Top = 144
         Width = 280
         Anchors = [akTop, akLeft, akBottom]
@@ -3256,7 +3257,7 @@ object Form1: TForm1
       end
       object gridVarious: TStringGrid
         Left = 296
-        Height = 557
+        Height = 552
         Top = 144
         Width = 272
         Anchors = [akTop, akLeft, akBottom]
@@ -3281,8 +3282,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 151
-        ClientWidth = 126
+        ClientHeight = 146
+        ClientWidth = 124
         ItemIndex = 0
         Items.Strings = (
           'GYRO_POWER'
@@ -3306,8 +3307,8 @@ object Form1: TForm1
     end
     object tsFC: TTabSheet
       Caption = 'As flight controller to CGO3+ (Demo)'
-      ClientHeight = 704
-      ClientWidth = 880
+      ClientHeight = 699
+      ClientWidth = 882
       ImageIndex = 5
       object knPanControl: TmKnob
         Left = 208
@@ -3335,8 +3336,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 104
-        ClientWidth = 46
+        ClientHeight = 99
+        ClientWidth = 44
         ItemIndex = 0
         Items.Strings = (
           'F'
@@ -3360,8 +3361,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 104
-        ClientWidth = 46
+        ClientHeight = 99
+        ClientWidth = 44
         ItemIndex = 0
         Items.Strings = (
           'A'
@@ -3383,9 +3384,9 @@ object Form1: TForm1
       end
       object lblPanControl: TLabel
         Left = 224
-        Height = 16
+        Height = 17
         Top = 16
-        Width = 32
+        Width = 28
         Caption = '2048'
       end
       object btnCenter: TButton
@@ -3400,9 +3401,9 @@ object Form1: TForm1
       end
       object cbTelemetry: TCheckBox
         Left = 8
-        Height = 23
+        Height = 21
         Top = 160
-        Width = 142
+        Width = 130
         Caption = 'Send test telemetry'
         TabOrder = 5
       end
@@ -3410,7 +3411,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 8
-        Width = 585
+        Width = 587
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -3437,7 +3438,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 208
-        Width = 585
+        Width = 587
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -3464,7 +3465,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 416
-        Width = 585
+        Width = 587
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -3489,9 +3490,9 @@ object Form1: TForm1
       end
       object lblGimbalVersion: TLabel
         Left = 32
-        Height = 16
+        Height = 17
         Top = 199
-        Width = 64
+        Width = 63
         Caption = 'Gimbal FW'
       end
     end
