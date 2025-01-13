@@ -65,6 +65,7 @@ type
     acSaveProt: TAction;
     ActionList1: TActionList;
     btnEnableNFZ: TButton;
+    btnGimbalCali: TButton;
     btnSaveMsg: TBitBtn;
     btnVersion: TButton;
     btnZeroPhaseCali: TButton;
@@ -99,7 +100,14 @@ type
     gbAcc: TGroupBox;
     gbGyro: TGroupBox;
     gbMotors: TGroupBox;
+    lblOtherSats: TLabel;
+    picGPS: TImage;
+    picGLONASS: TImage;
+    picSBAS: TImage;
     ImageList1: TImageList;
+    lbIGPSsats: TLabel;
+    lbIGLONASSsats: TLabel;
+    lbISBASsats: TLabel;
     lbIIESCOK: TLabel;
     picMotors: TImage;
     lblEnableTesting: TLabel;
@@ -215,6 +223,7 @@ type
     procedure btnZeroPhaseCaliClick(Sender: TObject);
     procedure btnZeroPhaseErsClick(Sender: TObject);
     procedure btnEnableTestingClick(Sender: TObject);
+    procedure btnGimbalCaliClick(Sender: TObject);
     procedure cbPortDblClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -236,7 +245,7 @@ type
   private
     procedure StopAllTimer;
     procedure ResetSensorsStatus;
-    procedure CreateFCControl(var msg: TMavMessage; SequenceNumber: byte);
+    procedure CreateFCControl(var msg: TMavMessage; SequenceNumber: byte; const command: uint16=$FFFF);
     procedure CreateFCTelemetry5GHz(var msg: TMavMessage; SequenceNumber: byte);
     function PanModeToInt: uint16;
     function TiltModeToInt: uint16;
@@ -252,6 +261,7 @@ type
     procedure ClearMessageTables;
     procedure ClearGUI;
     procedure FillGUIPosition24(const sats: TGPSdata);
+    procedure FillGPS_STATUS(const sats: TGPSdata);
     procedure FillGUIPosition33(const sats: TGPSdata);
     procedure FillGUIIMU(const data: THWstatusData);
     procedure FillGUI_SYS_STATUS(const msg: TMAVmessage; var data: TGPSdata);
@@ -304,7 +314,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.3 2024-01-12';
+  AppVersion='V1.4 2024-01-13';
 
   tab1=' ';
   tab2='  ';
@@ -346,6 +356,7 @@ begin
   UARTconnected:=false;
   GIMBALtext.Text:='';
   GUItext.Text:='';
+  btnGimbalCali.Hint:=hntGimbalCali;
   WriteHeader_STATUS;
   WriteHeader_GYRO_POWER;
   WriteGUIvalueListHeader;
@@ -356,6 +367,7 @@ begin
   acDisConnect.Hint:=hntDisConnect;
   cbSpeed.Hint:=hntSpeed;
 
+  lblOtherSats.Caption:='';
   lblGeoFenceVal.Hint:=hntGeoFence;
   speGeoFence.Hint:=hntGeoFence;
   lblGeoFence.Hint:=hntGeoFence;
@@ -668,6 +680,10 @@ begin
   shapeIMUOK.Pen.Color:=clSensorMiss;
   shapeSonar.Pen.Color:=clSensorMiss;
   shapeRSOK.Pen.Color:=clSensorMiss;
+  picGPS.ImageIndex:=11;
+  picGLONASS.ImageIndex:=11;
+  picSBAS.ImageIndex:=11;
+  lblOtherSats.Caption:='';
 end;
 
 procedure WriteCSVRawHeader(var list: TStringList);
@@ -697,7 +713,7 @@ begin
   Boottime:=GetTickCount64;
 end;
 
-procedure TForm1.CreateFCControl(var msg: TMavMessage; SequenceNumber: byte);
+procedure TForm1.CreateFCControl(var msg: TMavMessage; SequenceNumber: byte; const command: uint16=$FFFF);
 begin
   CreateStandardPartMsg(msg, 26);
   msg.msgbytes[2]:=SequenceNumber;
@@ -707,7 +723,10 @@ begin
   SetUInt16ToMsg(msg, 22, InvertPanControlPosition(knPanControl.Position));
   SetUInt16ToMsg(msg, 24, tbTiltControl.Position);
   SetUInt16ToMsg(msg, 26, 2048);
-  SetUInt16ToMsg(msg, 28, PanModeToInt);
+  if command<$FFFF then
+    SetUInt16ToMsg(msg, 28, command)
+  else
+    SetUInt16ToMsg(msg, 28, PanModeToInt);
   SetUInt16ToMsg(msg, 30, TiltModeToInt);
   SetUInt16ToMsg(msg, 32, 500);
   SetCRC_FE(msg);
@@ -1089,6 +1108,36 @@ begin
   vleVelocity.Cells[1, 1]:=FormatSpeed(sats.vel);
 end;
 
+{Sat ID are PRN numbers.
+ See https://continuouswave.com/forum/viewtopic.php?t=1696
+ SBAS: https://gssc.esa.int/navipedia/index.php/SBAS_Fundamentals}
+
+procedure TForm1.FillGPS_STATUS(const sats: TGPSdata);
+begin
+  if sats.numGPS_visible>0 then
+    picGPS.ImageIndex:=10
+  else
+    picGPS.ImageIndex:=11;
+  if sats.numGLONASS_visible>0 then
+    picGLONASS.ImageIndex:=10
+  else
+    picGLONASS.ImageIndex:=11;
+  if sats.numSBAS_visible>0 then
+    picSBAS.ImageIndex:=10
+  else
+    picSBAS.ImageIndex:=11;
+  if sats.numOther_visible>0 then
+    lblOtherSats.Caption:='Other Sat-PRNs: '+IntToStr(sats.numOther_visible)
+  else
+    lblOtherSats.Caption:='';
+
+  vlePosition.Cells[1, 5]:=IntToStr(sats.sats_visible);
+  if (gbPosition.Color<>clSensorOK) and (gbPosition.Color<>clSatUsed) then
+    gbPosition.Color:=clSensorOK;
+  if shapeGPSOK.Pen.Color<>clSensorOK then
+    shapeGPSOK.Pen.Color:=clSensorOK;
+end;
+
 procedure TForm1.FillGUIPosition33(const sats: TGPSdata);
 begin
   vlePosition.Cells[1, 1]:=FormatCoordinates(sats.lat);
@@ -1373,13 +1422,9 @@ begin
     end;
     25: begin
       GPS_STATUS(msg, LengthFixPartBC, GUI_GPSdata);
+      FillGPS_STATUS(GUI_GPSdata);
       CreateSatSNRBarChart(GUI_GPSdata);
       CreateSatPolarDiagram(GUI_GPSdata);
-      vlePosition.Cells[1, 5]:=IntToStr(msg.msgbytes[6]);     {Sats visible}
-      if (gbPosition.Color<>clSensorOK) and (gbPosition.Color<>clSatUsed) then
-        gbPosition.Color:=clSensorOK;
-      if shapeGPSOK.Pen.Color<>clSensorOK then
-        shapeGPSOK.Pen.Color:=clSensorOK;
     end;
 
     27: begin
@@ -1629,8 +1674,8 @@ begin
   cbPort.Text:='';
   cbPort.Items.Clear;
   cbPort.Items.CommaText:=GetSerialPortNames;
-  cbPort.Text:=cbPort.Items[cbPort.Items.Count-1];
   if cbPort.Items.Count>0 then begin
+    cbPort.Text:=cbPort.Items[cbPort.Items.Count-1];
     for i:=0 to  cbPort.Items.Count-1 do begin
       GUItext.Lines.Add(cbPort.Items[i]);                {Make for Win same as for LINUX}
       GIMBALtext.Lines.Add(cbPort.Items[i]);
@@ -1725,6 +1770,23 @@ begin
                   mtConfirmation, [mbYes, mbNo], 0, mbNo)=mrYes then begin
       btnTurnAll.Enabled:=true;
     end;
+  end;
+end;
+
+{FC sends some special commands to gimbal using the Pan mode.
+ Commands:
+  16 - ??
+  24 - Gimbal calibration like from ST16
+ }
+procedure TForm1.btnGimbalCaliClick(Sender: TObject);
+var
+  msg: TMAVmessage;
+
+begin
+  if UARTConnected then begin
+    CreateFCControl(msg, SequNumberTransmit, 24);
+    if   SendUARTMessage(msg, LengthFixPartFE) then
+      IncSequNo8(SequNumberTransmit);
   end;
 end;
 
@@ -2009,7 +2071,7 @@ begin
         inc(NumSatsInUse);
       end else
         IndicatorColor:=clSatVisible;
-      SatSNRBarSource.Add(i, sats.sat_snr[i], 'ID'+IntToStr(sats.sat_prn[i]), IndicatorColor);
+      SatSNRBarSource.Add(i, sats.sat_snr[i], 'PRN'+IntToStr(sats.sat_prn[i]), IndicatorColor);
     end;
     NumSatsVisible:=sats.sats_visible;
     if NumSatsVisible=max8 then
@@ -2043,7 +2105,7 @@ begin
         IndicatorColor:=clSatVisible;
       azi:=SatAzimuthToDeg(sats.sat_azimuth[i]);
       ele:=SatElevationToDeg(sats.sat_elevation[i]);
-      SatPolarSource.Add(azi, ele, 'ID'+IntToStr(sats.sat_prn[i]), IndicatorColor);
+      SatPolarSource.Add(azi, ele, IntToStr(sats.sat_prn[i]), IndicatorColor);
     end;
     PreparePolarAxes(SatPolar, 90);  {Sat elevation 0: right on top of receiver, 90: on the horizon}
   finally
