@@ -9,7 +9,7 @@ NOTE: Test telemetry will only be recorded by ST16 in flight logs if flight cont
 
 **WARNING:** Do not erase data from CGO3+ when you not sure what you do. *You will not get back deleted data!* Calibration may halp but there is no warranty.
 
-![Screenshot_GUI_GPS](Screenshots/Screenshot_GUI_GPS.png)
+![Screenshot_GUI_GPS](Screenshots/GUI_GNSS.png)
 
 To compile this tool you need the common units from this repo: https://github.com/h-elsner/common_units
 Also the packages Synapse and Industrial stuff have to be installed (use OPM).
