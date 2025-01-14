@@ -1409,8 +1409,6 @@ begin
     2: begin
       SYS_TIME(msg, LengthFixPartBC, GUI_GPSdata);
       lblSysTime.Caption:=FormatDateTime(timefull, GUI_GPSdata.timeUTC);
-      lblFCtime.Caption:=FormatBootTime(GUI_GPSdata);
-      lblFCtimeGPS.Caption:=FormatBootTime(GUI_GPSdata);
     end;
 
     22: begin
@@ -1455,8 +1453,6 @@ begin
     33: begin
       GLOBAL_POSITION_INT(msg, LengthFixPartBC, GUI_GPSdata);
       FillGUIposition33(GUI_GPSdata);
-      lblFCtime.Caption:=FormatBootTime(GUI_GPSdata);
-      lblFCtimeGPS.Caption:=FormatBootTime(GUI_GPSdata);
     end;
 
     52: begin
