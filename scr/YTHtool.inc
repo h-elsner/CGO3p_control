@@ -10,7 +10,7 @@ resourcestring                                     {english}
   hntSatSNR='Signal to noise ratio of satellites  [dB]';
   capPolar='Azimuth and elevation of visible sats';
   hntPolar='Azimuth: Direction of satellite 0 to 360°, Elevation: 0 to 90° (0°: right on top of receiver, 90°: on the horizon)';
-  capRecord='Record received data messages';
+  capRecord='Record CSV';
   hntRecord='Record the received data messages to a CSV file in hexa-decimal format';
   capSensor='Create sensor file';
   hntSensor='Save received data messages to a binary file like Sensor files in flight logs';
@@ -25,6 +25,7 @@ resourcestring                                     {english}
 
   hntGeoFence='Maximum distance from home point in Smart Mode.';
   hntHeightLimit='Maximum elevation above home point in Smart and Angle mode.';
+  hntGimbalCali='Gimbal calibration process like ST16 initiated.'+lineending+'Power cycle the camera once the calibration is finished.';
 
   msgPropellerRemoved='I have removed all propellers.';
   hntEnableTesting='Test motors only without propellers!';
@@ -44,8 +45,10 @@ resourcestring                                     {english}
   rsMotor='Motor';
   rsACW=' (A-CW)';
   rsBCCW=' (B-CCW)';
+  rsFixType='Fix type';
 
   errSensorsNotHealthy='Sensors not healthy!';
   errNoUSBport='No USB port available';
 
+  linkLazarus='https://www.lazarus-ide.org/';
 

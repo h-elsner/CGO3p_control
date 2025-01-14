@@ -100,6 +100,7 @@ type
     gbAcc: TGroupBox;
     gbGyro: TGroupBox;
     gbMotors: TGroupBox;
+    Image1: TImage;
     lblOtherSats: TLabel;
     picGPS: TImage;
     picGLONASS: TImage;
@@ -228,8 +229,8 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure Image1Click(Sender: TObject);
     procedure knPanControlChange(Sender: TObject; AValue: Longint);
-    procedure pcMainChange(Sender: TObject);
     procedure picMotorsMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure rgYGC_TypeClick(Sender: TObject);
@@ -314,7 +315,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.4 2024-01-13';
+  AppVersion='V1.4 2024-01-14';
 
   tab1=' ';
   tab2='  ';
@@ -402,7 +403,11 @@ begin
 
   shapeUsed.Pen.Color:=clSatUsed;
   shapeNotUsed.Pen.Color:=clSatVisible;
+end;
 
+procedure TForm1.Image1Click(Sender: TObject);
+begin
+  OpenURL(linkLazarus);
 end;
 
 function SendUARTMessage(const msg: TMAVmessage; LengthFixPart: byte): boolean;
@@ -562,6 +567,7 @@ begin
   vlePosition.Cells[0, 6]:='Sats used';
   vlePosition.Cells[0, 7]:='HDOP';
   vlePosition.Cells[0, 8]:='VDOP';
+  vlePosition.Cells[0, 9]:='Fix type';
 
   vleVelocity.Cells[0, 1]:='Velocity';
   vleVelocity.Cells[0, 2]:='Vx';
@@ -813,25 +819,27 @@ begin
     StatusBar1.Panels[1].Text:='0';          {Received messages}
     WriteCSVRawHeader(csvlist);
     StatusBar1.Panels[2].Text:=ConnectUART(cbPort.Text, cbSpeed.Text);
+    If UARTconnected then begin
+      StatusBar1.Panels[2].Text:=StatusBar1.Panels[2].Text+'  -  '+rsConnected;
+      if pcMain.ActivePage=tsFC then
+        ActAsFlightController(msg, csvlist)
+      else
+        if pcMain.ActivePage=tsYGC then
+          ActAsGimbalChecker(msg, csvlist)
+        else begin                            {GUI as default}
+          btnGeoFence.Enabled:=UARTConnected;
+          btnHeightLimit.Enabled:=UARTConnected;
+          ActAsGUI(msg, csvlist);
+        end;
 
-    if pcMain.ActivePage=tsFC then
-      ActAsFlightController(msg, csvlist)
-    else
-      if pcMain.ActivePage=tsYGC then
-        ActAsGimbalChecker(msg, csvlist)
-      else begin                            {GUI as default}
-        btnGeoFence.Enabled:=UARTConnected;
-        btnHeightLimit.Enabled:=UARTConnected;
-        ActAsGUI(msg, csvlist);
+      StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
+      StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+      SaveDialog1.FilterIndex:=1;
+      SaveDialog1.FileName:='BCmessages_'+FormatDateTime('yyyymmdd_hhnnss', now)+'.csv';
+      if cbRecord.Checked and (csvlist.Count>1) and SaveDialog1.Execute then begin
+        csvlist.SaveToFile(SaveDialog1.FileName);
+        StatusBar1.Panels[2].Text:=SaveDialog1.FileName+rsSaved;
       end;
-
-    StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
-    StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
-    SaveDialog1.FilterIndex:=1;
-    SaveDialog1.FileName:='BCmessages_'+FormatDateTime('yyyymmdd_hhnnss', now)+'.csv';
-    if cbRecord.Checked and (csvlist.Count>1) and SaveDialog1.Execute then begin
-      csvlist.SaveToFile(SaveDialog1.FileName);
-      StatusBar1.Panels[2].Text:=SaveDialog1.FileName+rsSaved;
     end;
   finally
     csvlist.Free;
@@ -1087,7 +1095,7 @@ var
 
 begin
   CreateGUI_PARAM_REQUEST_LIST(msg);
-  SendUARTMessage(msg, LengthFixPartBC);
+//  SendUARTMessage(msg, LengthFixPartBC);   {Not sending reduces text messages}
   CreateGUI_MISSION_REQUEST_INT(msg, 1);
   SendUARTMessage(msg, LengthFixPartBC);
   CreateGUI_MISSION_REQUEST_INT(msg, 11);
@@ -1104,6 +1112,7 @@ begin
   vlePosition.Cells[1, 6]:=IntToStr(sats.sats_inuse);
   vlePosition.Cells[1, 7]:=FormatDOP(sats.eph);
   vlePosition.Cells[1, 8]:=FormatDOP(sats.epv);
+  vlePosition.Cells[1, 9]:=FixTypeToStr(sats.fix_type);
 
   vleVelocity.Cells[1, 1]:=FormatSpeed(sats.vel);
 end;
@@ -1386,6 +1395,7 @@ begin
   Sensors:=Default(THWstatusData);
   DronePos:=Default(TAttitudeData);
   Values24:=Default(TData96);
+  BeginFormUpdate;
 
   case msg.msgid of
     0: begin
@@ -1486,6 +1496,7 @@ begin
 
     253: GUItext.Lines.Add(STATUSTEXT(msg, LengthFixPartBC, ' '));
   end;
+  EndFormUpdate;
 end;
 
 procedure TForm1.ActAsGUI(var msg: TMAVmessage; list: TStringList);
@@ -1889,13 +1900,6 @@ begin
   lblPanControl.Caption:=IntToStr(InvertPanControlPosition(knPanControl.Position));
 end;
 
-procedure TForm1.pcMainChange(Sender: TObject);
-begin
-//  StopAllTimer;
-//  DisconnectUART;
-//  StatusBar1.Panels[2].Text:=rsDisconnected;
-end;
-
 {Up to now I had the impression that the motor numbering is counterclockwise.
  This was also my interpretation of the motor error codes in Motor_status in
  flight logs. Also the error beep code support this view.
@@ -1997,12 +2001,15 @@ begin
   if UARTConnected then begin
     CreateGUIheartbeat(msg);
     SendUARTMessage(msg, LengthFixPartBC);
-    CreateGUI_SYS_STATUS(msg);
+
+// Send empty messages necessary? Semms not.
+(*    CreateGUI_SYS_STATUS(msg);
     SendUARTMessage(msg, LengthFixPartBC);
     CreateGUIemptyMsg(msg, 32, 28);                {LOCAL_POSITION_NED}
     SendUARTMessage(msg, LengthFixPartBC);
     CreateGUIemptyMsg(msg, 30, 28);                {ATTITUDE}
-    SendUARTMessage(msg, LengthFixPartBC);
+    SendUARTMessage(msg, LengthFixPartBC); *)
+
     StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
     StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
   end;
