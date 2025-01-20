@@ -792,6 +792,7 @@ begin
   shapeIMUOK.Pen.Color:=clSensorMiss;
   shapeSonar.Pen.Color:=clSensorMiss;
   shapeRSOK.Pen.Color:=clSensorMiss;
+  shapeESCOK.Pen.Color:=clSensorMiss;
   picGPS.ImageIndex:=11;
   picGLONASS.ImageIndex:=11;
   picSBAS.ImageIndex:=11;
