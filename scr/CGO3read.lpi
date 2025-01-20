@@ -11,7 +11,9 @@
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
+      <Icon Value="0"/>
     </General>
+    <LazDoc Paths="Doc"/>
     <BuildModes>
       <Item Name="Default" Default="True"/>
     </BuildModes>

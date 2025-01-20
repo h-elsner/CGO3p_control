@@ -40,6 +40,16 @@ SOFTWARE.
 
 *******************************************************************************)
 
+{This unit needs following additional components:
+- Synapse
+- Industrial stuff
+
+Also the units mav_def and mav_msg from repository "Common units" are needed:
+https://github.com/h-elsner/common_units
+The unit msg57 is a dummy for Yuneec NFZ license procedure,
+which is not open source.
+}
+
 unit CGO3read_main;
 
 {$mode objfpc}{$H+}
@@ -50,8 +60,8 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   lclintf, Buttons, ActnList, Menus, Process, XMLPropStorage, ComCtrls, Grids,
   ValEdit, Spin, TAGraph, TATypes, TASeries, TAChartUtils, TAGeometry,
-  TARadialSeries, TASources, synaser, MKnob,
-  mav_def, mav_msg, msg57;
+  TARadialSeries, TASources, synaser, MKnob, clipbrd,
+  mav_def, mav_msg, msg57, Types;
 
 type
 
@@ -62,7 +72,9 @@ type
     acClose: TAction;
     acDisconnect: TAction;
     acScanPorts: TAction;
-    acSaveProt: TAction;
+    acSaveGUItext: TAction;
+    acCopySerial: TAction;
+    acEnableTesting: TAction;
     ActionList1: TActionList;
     btnEnableNFZ: TButton;
     btnGimbalCali: TButton;
@@ -102,6 +114,10 @@ type
     gbMotors: TGroupBox;
     Image1: TImage;
     lblOtherSats: TLabel;
+    mnEnableTesting: TMenuItem;
+    mnCopySerial: TMenuItem;
+    mnSaveGUItext: TMenuItem;
+    Separator1: TMenuItem;
     picGPS: TImage;
     picGLONASS: TImage;
     picSBAS: TImage;
@@ -129,6 +145,7 @@ type
     lblNotUsed: TLabel;
     GUIpanel: TPanel;
     lblSysTime: TLabel;
+    mnLicense: TPopupMenu;
     SensorLEDPanel: TPanel;
     SatPolarSeries: TPolarSeries;
     SatPolarSource: TListChartSource;
@@ -205,8 +222,10 @@ type
 
     procedure acCloseExecute(Sender: TObject);
     procedure acConnectExecute(Sender: TObject);
+    procedure acCopySerialExecute(Sender: TObject);
     procedure acDisconnectExecute(Sender: TObject);
-    procedure acSaveProtExecute(Sender: TObject);
+    procedure acEnableTestingExecute(Sender: TObject);
+    procedure acSaveGUItextExecute(Sender: TObject);
     procedure acScanPortsExecute(Sender: TObject);
     procedure btnAccCaliClick(Sender: TObject);
     procedure btnAccEraseClick(Sender: TObject);
@@ -223,12 +242,19 @@ type
     procedure btnYawEncErsClick(Sender: TObject);
     procedure btnZeroPhaseCaliClick(Sender: TObject);
     procedure btnZeroPhaseErsClick(Sender: TObject);
-    procedure btnEnableTestingClick(Sender: TObject);
     procedure btnGimbalCaliClick(Sender: TObject);
     procedure cbPortDblClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure GIMBALtextMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure GIMBALtextMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure GUItextMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure GUItextMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
     procedure Image1Click(Sender: TObject);
     procedure knPanControlChange(Sender: TObject; AValue: Longint);
     procedure picMotorsMouseDown(Sender: TObject; Button: TMouseButton;
@@ -273,11 +299,11 @@ type
 
     procedure CreateSatSNRBarChart(const sats: TGPSdata);
     procedure CreateSatPolarDiagram(const sats: TGPSdata);
-    procedure PrepareSatSNRBarChart;                  {My settings for the SNR chart}
+    procedure PrepareSatSNRBarChart;                   {My settings for the SNR chart}
     procedure PreparePolarAxes(AChart: TChart; AMax: Double);
     procedure PrepareSatPolarDiagram;
     procedure DrawPolarAxes(AChart: TChart; AMax, ADelta: Double; MeasurementUnit: string);
-
+    procedure GUIsetCaptionsAndHints;
   public
     procedure ReadMessage_FE(var msg: TMAVmessage);
     procedure ReadGimbalPosition(msg: TMAVmessage);
@@ -289,6 +315,7 @@ type
     procedure ActAsGUI(var msg: TMAVmessage; list: TStringList);
     procedure ReadYGCcameraMessages(msg: TMAVmessage);
     procedure SendYGCHeartbeat;
+    procedure NumberMessagesInStatusBar;
 
     function YGC_TimestampIn_ms(msg: TMAVmessage): integer;
     procedure GIMBAL_GYRO_POWER(msg: TMAVmessage);
@@ -301,12 +328,12 @@ type
     procedure TEXT_MESSAGE(msg: TMAVmessage);
   end;
 
-  {$I YTHtool.inc}
+  {$I YTHtool_en.inc}
 
 var
   Form1: TForm1;
   UART: TBlockSerial;
-  UARTConnected, ser: boolean;
+  UARTConnected, SerialNumberFound: boolean;
   SensorStream: TMemoryStream;
 
   boottime: UInt64;
@@ -315,7 +342,8 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.4 2024-01-14';
+  AppVersion='V1.4 2024-01-19';
+  linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
   tab2='  ';
@@ -352,47 +380,15 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  Caption:=Application.Title+tab2+AppVersion;
-  cbSpeed.Text:=IntToStr(defaultbaud);
   UARTconnected:=false;
   GIMBALtext.Text:='';
   GUItext.Text:='';
-  btnGimbalCali.Hint:=hntGimbalCali;
+  GUIsetCaptionsAndHints;
+
   WriteHeader_STATUS;
   WriteHeader_GYRO_POWER;
   WriteGUIvalueListHeader;
-  cbPort.Hint:=hntPort;
-  acConnect.Caption:=capConnect;
-  acConnect.Hint:=hntConnect;
-  acDisConnect.Caption:=capDisConnect;
-  acDisConnect.Hint:=hntDisConnect;
-  cbSpeed.Hint:=hntSpeed;
 
-  lblOtherSats.Caption:='';
-  lblGeoFenceVal.Hint:=hntGeoFence;
-  speGeoFence.Hint:=hntGeoFence;
-  lblGeoFence.Hint:=hntGeoFence;
-  lblHeightLimitVal.Hint:=hntHeightLimit;
-  speHeightLimit.Hint:=hntHeightLimit;
-  lblHeightLimit.Hint:=hntHeightLimit;
-  SatPolar.Hint:=hntPolar;
-  ChartSatSNR.Hint:=hntSatSNR;
-  lblSysTime.Hint:=hntTime;
-  btnClose.Hint:=hntClose;
-  StatusBar1.Hint:=hntStatusBar;
-  acSaveProt.Caption:=capSaveProt;
-  acSaveProt.Hint:=hntSaveProt;
-  cbRecord.Caption:=capRecord;
-  cbRecord.Hint:=hntRecord;
-  cbSensor.Caption:=capSensor;
-  cbSensor.Hint:=hntSensor;
-  lblFCtimeGPS.Caption:=capFCtime;
-  lblFCtimeGPS.Hint:=hntFCtime;
-  lblFCtime.Caption:=capFCtime;
-  lblFCtime.Hint:=hntFCtime;
-
-  gbMotors.Hint:=hntEnableTesting;
-  lblEnableTesting.Caption:=hntEnableTesting;
 
   ResetSensorsStatus;
   PrepareSatSNRBarChart;
@@ -403,6 +399,117 @@ begin
 
   shapeUsed.Pen.Color:=clSatUsed;
   shapeNotUsed.Pen.Color:=clSatVisible;
+end;
+
+procedure TForm1.GUIsetCaptionsAndHints;
+begin
+  Caption:=Application.Title+tab2+AppVersion;
+  cbSpeed.Text:=IntToStr(defaultbaud);
+  cbSpeed.Hint:=hntSpeed;
+  cbPort.Hint:=hntPort;
+  acConnect.Caption:=capConnect;
+  acConnect.Hint:=hntConnect;
+  acDisConnect.Caption:=capDisConnect;
+  acDisConnect.Hint:=hntDisConnect;
+  acClose.Caption:=capClose;
+  acSaveGUItext.Caption:=capSaveGUItext;
+  acSaveGUItext.Hint:=hntSaveGUItext;
+  acCopySerial.Caption:=capCopySerial;
+  acCopySerial.Hint:=hntCopySerial;
+
+  btnGimbalCali.Caption:=capGimbalCali;
+  btnGimbalCali.Hint:=hntGimbalCali;
+  btnVersion.Caption:=capVersion;
+  btnVersion.Hint:=hntVersion;
+  btnCenter.Caption:=capCenter;
+  btnCenter.Hint:=hntCenter;
+
+  acSaveGUItext.Caption:=capSaveProt;
+  acSaveGUItext.Hint:=hntSaveProt;
+  acEnabletesting.Caption:=capEnableTesting;
+
+  lblOtherSats.Caption:='';
+  lblGeoFenceVal.Hint:=hntGeoFence;
+  speGeoFence.Hint:=hntGeoFence;
+  lblGeoFence.Hint:=hntGeoFence;
+  lblHeightLimitVal.Hint:=hntHeightLimit;
+  speHeightLimit.Hint:=hntHeightLimit;
+  lblHeightLimit.Hint:=hntHeightLimit;
+  lblBootTime.Caption:=capFCtime;
+  lblBootTime.Hint:=hntBoottime;
+  lblFCtimeGPS.Caption:=capFCtime;
+  lblFCtimeGPS.Hint:=hntFCtime;
+  lblFCtime.Caption:=capFCtime;
+  lblFCtime.Hint:=hntFCtime;
+  lbIGPSsats.Hint:=hntGPS;
+  lbIGLONASSsats.Hint:=hntGLONASS;
+  lbISBASsats.Hint:=hntSBAS;
+  lblSystime.Caption:=capSystemTime;
+  lblSysTime.Hint:=hntTime;
+  lblNotUsed.Caption:=capNotUsed;
+  lblNotUsed.Hint:=hntNotUsed;
+  lblSatUsed.Caption:=capSatUsed;
+  lblSatUsed.Hint:=hntSatUsed;
+  lblSerialNo.Caption:=capSerialNo;
+  lblEnableTesting.Caption:=hntEnableTesting;
+
+  SatPolar.Hint:=hntPolar;
+  ChartSatSNR.Hint:=hntSatSNR;
+  btnClose.Hint:=hntClose;
+  StatusBar1.Hint:=hntStatusBar;
+  rgYGC_Type.Caption:=capYGC_Type;
+  rgYGC_Type.Hint:=hntYGC_Type;
+  panelRight.Hint:=hntPanelRight;
+  tbTiltControl.Hint:=hntTiltControl;
+  rgTiltMode.Hint:=hntTiltMode;
+  rgPanMode.Hint:=hntPanMode;
+  knPanControl.Hint:=hntPanControl;
+  gbMotors.Hint:=hntEnableTesting;
+
+  cbLimitMsg.Caption:=capLimitMsg;
+  cbHighRPM.Caption:=capHighRPM;
+  cbHighRPM.Hint:=hntHighRPM;
+  cbRecord.Caption:=capRecord;
+  cbRecord.Hint:=hntRecord;
+  cbSensor.Caption:=capSensor;
+  cbSensor.Hint:=hntSensor;
+  cbTelemetry.Caption:=capTelemetry;
+  cbTelemetry.Hint:=hntTelemetry;
+
+  tsGUI.Caption:=captsGUI;
+  tsYGC.Caption:=captsYGC;
+  tsFC.Caption:=captsFC;
+  tsSensorInfo.Caption:=capSensorInfo;
+  tsGPSinfo.Caption:=capGPSinfo;
+  tsSettings.Caption:=capSettings;
+end;
+
+procedure TForm1.GIMBALtextMouseWheelDown(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  if ssCtrl in Shift then
+    GIMBALtext.Font.Size:=GIMBALtext.Font.Size-1;
+end;
+
+procedure TForm1.GIMBALtextMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  if ssCtrl in Shift then
+    GIMBALtext.Font.Size:=GIMBALtext.Font.Size+1;
+end;
+
+procedure TForm1.GUItextMouseWheelDown(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  if ssCtrl in Shift then
+    GUItext.Font.Size:=GUItext.Font.Size-1;
+end;
+
+procedure TForm1.GUItextMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+begin
+  if ssCtrl in Shift then
+    GUItext.Font.Size:=GUItext.Font.Size+1;
 end;
 
 procedure TForm1.Image1Click(Sender: TObject);
@@ -650,8 +757,8 @@ begin
     0: result:=683;
     1: result:=1502;
     2: result:=3412;
-    3: result:=1433;      { Teammode}
-    4: result:=2048;      { Neutral - sollte eigentlich nicht auftreten }
+    3: result:=1433;                                   {Teammode}
+    4: result:=2048;                                   {Neutral - sollte eigentlich nicht auftrete }
   end;
 end;
 
@@ -671,7 +778,6 @@ begin
   timerFCCommand.Enabled:=false;
   timerGUI.Enabled:=false;
   timerSensors.Enabled:=false;
-  ser:=false;
 end;
 
 procedure TForm1.ResetSensorsStatus;
@@ -710,12 +816,12 @@ begin
   pan:=0;
   tilt:=0;
   roll:=0;
-  voltage:=0;                         {[mV]}
+  voltage:=0;                                          {[mV]}
   SequNumberTransmit:=0;
   SequNumberReceived:=0;
   MessagesSent:=0;
   MessagesReceived:=0;
-  ser:=false;
+  SerialNumberFound:=false;
   Boottime:=GetTickCount64;
 end;
 
@@ -797,6 +903,12 @@ begin
   end;
 end;
 
+procedure TForm1.NumberMessagesInStatusBar;
+begin
+  StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
+  StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+end;
+
 procedure TForm1.acConnectExecute(Sender: TObject);
 var
   msg: TMAVmessage;
@@ -815,8 +927,8 @@ begin
     lblGimbalVersion.Caption:='';
     lblSerial.Caption:='';
     lblGimbalBootTime.Caption:='';
-    StatusBar1.Panels[0].Text:='0';          {Sent messages}
-    StatusBar1.Panels[1].Text:='0';          {Received messages}
+    StatusBar1.Panels[0].Text:='0';                    {Sent messages}
+    StatusBar1.Panels[1].Text:='0';                    {Received messages}
     WriteCSVRawHeader(csvlist);
     StatusBar1.Panels[2].Text:=ConnectUART(cbPort.Text, cbSpeed.Text);
     If UARTconnected then begin
@@ -826,14 +938,13 @@ begin
       else
         if pcMain.ActivePage=tsYGC then
           ActAsGimbalChecker(msg, csvlist)
-        else begin                            {GUI as default}
+        else begin                                     {GUI as default}
           btnGeoFence.Enabled:=UARTConnected;
           btnHeightLimit.Enabled:=UARTConnected;
           ActAsGUI(msg, csvlist);
         end;
 
-      StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
-      StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+      NumberMessagesInStatusBar;
       SaveDialog1.FilterIndex:=1;
       SaveDialog1.FileName:='BCmessages_'+FormatDateTime('yyyymmdd_hhnnss', now)+'.csv';
       if cbRecord.Checked and (csvlist.Count>1) and SaveDialog1.Execute then begin
@@ -844,6 +955,12 @@ begin
   finally
     csvlist.Free;
   end;
+end;
+
+procedure TForm1.acCopySerialExecute(Sender: TObject);
+begin
+  if vleSystem.Cells[1, 2]<>'' then
+    Clipboard.AsText:=vleSystem.Cells[1, 2];
 end;
 
 procedure TForm1.acCloseExecute(Sender: TObject);
@@ -909,15 +1026,15 @@ begin
   gridVarious.Cells[1, 5]:=FormatFloat(floatformat2, AngleY/100);
   gridVarious.Cells[1, 6]:=FormatFloat(floatformat2, AngleZ/100);
 
-  gridVarious.Cells[1, 7]:=FormatFloat(floatformat2, MavGetInt16(msg, 25)/100);       {EulerHope}
+  gridVarious.Cells[1, 7]:=FormatFloat(floatformat2, MavGetInt16(msg, 25)/100);  {EulerHope}
   gridVarious.Cells[1, 8]:=FormatFloat(floatformat2, MavGetInt16(msg, 27)/100);
   gridVarious.Cells[1, 9]:=FormatFloat(floatformat2, MavGetInt16(msg, 29)/100);
 
-  gridVarious.Cells[1, 10]:=FormatFloat(floatformat2, MavGetInt16(msg, 31)/100);      {Euler}
+  gridVarious.Cells[1, 10]:=FormatFloat(floatformat2, MavGetInt16(msg, 31)/100); {Euler}
   gridVarious.Cells[1, 11]:=FormatFloat(floatformat2, MavGetInt16(msg, 33)/100);
   gridVarious.Cells[1, 12]:=FormatFloat(floatformat2, MavGetInt16(msg, 35)/100);
 
-  gridVarious.Cells[1, 13]:=FormatFloat(floatformat2, (AngleHopeX-AngleX)/100);       {AngleError}
+  gridVarious.Cells[1, 13]:=FormatFloat(floatformat2, (AngleHopeX-AngleX)/100);  {AngleError}
   gridVarious.Cells[1, 14]:=FormatFloat(floatformat2, (AngleHopeY-AngleY)/100);
   gridVarious.Cells[1, 15]:=FormatFloat(floatformat2, (AngleHopeZ-AngleZ)/100);
 end;
@@ -972,20 +1089,20 @@ begin
   YGC_TimestampIn_ms(msg);
   gridStatus.Cells[1, 1]:=FormatFloat(floatformat2, MavGetUInt16(msg, 13)/100);
   gridStatus.Cells[1, 2]:=FormatFloat(floatformat2, MavGetUInt16(msg, 15)/1000);
-  gridStatus.Cells[1, 3]:=IntToStr(MavGetUInt16(msg, 17));                      {Seconds}
+  gridStatus.Cells[1, 3]:=IntToStr(MavGetUInt16(msg, 17));                       {Seconds}
 
-  gridStatus.Cells[1, 4]:=IntToStr(MavGetInt16(msg, 19));                       {Enc_data}
+  gridStatus.Cells[1, 4]:=IntToStr(MavGetInt16(msg, 19));                        {Enc_data}
   gridStatus.Cells[1, 5]:=IntToStr(MavGetInt16(msg, 21));
   gridStatus.Cells[1, 6]:=IntToStr(MavGetInt16(msg, 23));
 
-  gridStatus.Cells[1, 7]:=FormatFloat(floatformat2, MavGetInt16(msg, 25)/100);  {StageAngle}
+  gridStatus.Cells[1, 7]:=FormatFloat(floatformat2, MavGetInt16(msg, 25)/100);   {StageAngle}
   gridStatus.Cells[1, 8]:=FormatFloat(floatformat2, MavGetInt16(msg, 27)/100);
 
-  gridStatus.Cells[1, 9]:=FormatFloat(floatformat2, MavGetInt16(msg, 29)/100);  {AC_angle}
+  gridStatus.Cells[1, 9]:=FormatFloat(floatformat2, MavGetInt16(msg, 29)/100);   {AC_angle}
   gridStatus.Cells[1, 10]:=FormatFloat(floatformat2, MavGetInt16(msg, 31)/100);
   gridStatus.Cells[1, 11]:=FormatFloat(floatformat2, MavGetInt16(msg, 33)/100);
 
-  gridStatus.Cells[1, 12]:=IntToStr(msg.msgbytes[35]);                          {GyroStable}
+  gridStatus.Cells[1, 12]:=IntToStr(msg.msgbytes[35]);                           {GyroStable}
   gridStatus.Cells[1, 13]:=IntToStr(msg.msgbytes[36]);
   gridStatus.Cells[1, 14]:=IntToStr(msg.msgbytes[37]);
 end;
@@ -1005,12 +1122,12 @@ var
   s: string;
 
 begin
-  if ser then
+  if SerialNumberFound then
     exit;
   s:=GetSERIAL(msg, LengthFixPartFE+1);
   lblSerial.Caption:=s;
   Caption:=Application.Title+tab2+s;
-  ser:=true;                          {Read serial number only once}
+  SerialNumberFound:=true;                                           {Read serial number only once}
 end;
 
 procedure TForm1.TEXT_MESSAGE(msg: TMAVmessage);
@@ -1031,8 +1148,7 @@ begin
     CreateYGCcommandMessage(msg);
     SendUARTMessage(msg, LengthFixPartFE);
   end;
-  StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
-  StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+  NumberMessagesInStatusBar;
 end;
 
 procedure TForm1.ReadYGCcameraMessages(msg: TMAVmessage);
@@ -1095,7 +1211,7 @@ var
 
 begin
   CreateGUI_PARAM_REQUEST_LIST(msg);
-//  SendUARTMessage(msg, LengthFixPartBC);   {Not sending reduces text messages}
+//  SendUARTMessage(msg, LengthFixPartBC);           {Not sending reduces text messages}
   CreateGUI_MISSION_REQUEST_INT(msg, 1);
   SendUARTMessage(msg, LengthFixPartBC);
   CreateGUI_MISSION_REQUEST_INT(msg, 11);
@@ -1259,20 +1375,22 @@ var
   healty, enabld: UInt32;
 
 begin
-  vleSysStatus.Cells[1, 1]:=IntToHexSpace(MavGetUInt32(msg, 6));
-  enabld:=MavGetUInt32(msg, 10);
+  vleSysStatus.Cells[1, 1]:=IntToHexSpace(MavGetUInt32(msg, LengthFixPartBC));
+  enabld:=MavGetUInt32(msg, LengthFixPartBC+4);
   vleSysStatus.Cells[1, 2]:=IntToHexSpace(enabld);
-  healty:=MavGetUInt32(msg, 14);
+  healty:=MavGetUInt32(msg, LengthFixPartBC+8);
   vleSysStatus.Cells[1, 3]:=IntToHexSpace(healty);
 
-  vleSysStatus.Cells[1, 4]:=IntToStr(MavGetUInt16(msg, 24));
-  vleSysStatus.Cells[1, 5]:=IntToStr(MavGetUInt16(msg, 26));
-  err:=MavGetUInt16(msg, 28)+MavGetUInt16(msg, 30)+
-       MavGetUInt16(msg, 32)+MavGetUInt16(msg, 34);
+  vleSysStatus.Cells[1, 4]:=IntToStr(MavGetUInt16(msg, LengthFixPartBC+18));
+  vleSysStatus.Cells[1, 5]:=IntToStr(MavGetUInt16(msg, LengthFixPartBC+20));
+  err:=MavGetUInt16(msg, LengthFixPartBC+22)+MavGetUInt16(msg, LengthFixPartBC+24)+
+       MavGetUInt16(msg, LengthFixPartBC+26)+MavGetUInt16(msg, LengthFixPartBC+28);
   vleSysStatus.Cells[1, 6]:=IntToStr(err);
   vleSysStatus.Cells[1, 8]:=FormatFloat(floatformat2, data.voltage/1000)+'V';
+  if data.batt_cap<max8 then
+    vleSysStatus.Cells[1, 8]:=vleSysStatus.Cells[1, 8]+'  ('+IntToStr(data.batt_cap)+'%)';
 
-  if (enabld and $10000)=$10000 then                     {Radio SR24}
+  if (enabld and $10000)=$10000 then                   {Radio SR24}
     vleSysStatus.Cells[1, 9]:=rsEnabled;
   if (healty and $10000)=$10000 then
     vleSysStatus.Cells[1, 9]:=rsConnected;
@@ -1281,7 +1399,7 @@ begin
     vleSystem.Cells[1, 5]:=rsAvailable
   else
     vleSystem.Cells[1, 5]:=rsNotMounted;
-  if (healty and $2000040)=$2000040 then begin           {Real Sense}
+  if (healty and $2000040)=$2000040 then begin         {Real Sense}
     if shapeRSOK.Pen.Color<>clSensorOK then
       shapeRSOK.Pen.Color:=clSensorOK;
   end;
@@ -1313,7 +1431,7 @@ begin
   end else begin
     shapeESCOK.Pen.Color:=clSensorMiss;
   end;
-  if (healty and $0F)=$0F then begin                     {Gyro, Acc, Mag and Baro}
+  if (healty and $0F)=$0F then begin                   {Gyro, Acc, Mag and Baro}
     if shapeIMUOK.Pen.Color<>clSensorOK then
       shapeIMUOK.Pen.Color:=clSensorOK;
   end else begin
@@ -1347,16 +1465,16 @@ var
   i: byte;
 
 begin
-  ser:=false;
+  SerialNumberFound:=false;
   btnTurnAll.Enabled:=false;
   BarSatSNR.Clear;
   SatPolarSeries.Clear;
   ResetSensorsStatus;     {notwendig?}
   lblSysTime.Caption:=rsTimeUTC;
   GUItext.Text:='';
+  acCopySerial.Enabled:=false;
   for i:=1 to vleSystem.RowCount-1 do
     vleSystem.Cells[1, i]:='';
-
 end;
 
 function FormatBootTime(const data: TGPSdata): string;
@@ -1423,8 +1541,6 @@ begin
 
     24: begin
       GPS_RAW_INT(msg, LengthFixPartBC, GUI_GPSdata);
-      lblFCtime.Caption:=FormatBootTime(GUI_GPSdata);
-      lblFCtimeGPS.Caption:=FormatBootTime(GUI_GPSdata);
       FillGUIposition24(GUI_GPSdata);
       timerSensors.Enabled:=false;
     end;
@@ -1452,6 +1568,8 @@ begin
 
     33: begin
       GLOBAL_POSITION_INT(msg, LengthFixPartBC, GUI_GPSdata);
+      lblFCtime.Caption:=FormatBootTime(GUI_GPSdata);
+      lblFCtimeGPS.Caption:=FormatBootTime(GUI_GPSdata);
       FillGUIposition33(GUI_GPSdata);
     end;
 
@@ -1463,11 +1581,12 @@ begin
     end;
 
     56: begin
-      if not ser then begin
+      if not SerialNumberFound then begin
         s:=GetSERIAL(msg, LengthFixPartBC);
         vleSystem.Cells[1, 2]:=s;
         Caption:=Application.Title+tab2+s;
-        ser:=true;
+        SerialNumberFound:=true;
+        acCopySerial.Enabled:=true;
         btnDisableNFZ.Enabled:=UARTConnected;
         btnEnableNFZ.Enabled:=UARTConnected;
       end;
@@ -1498,8 +1617,9 @@ end;
 procedure TForm1.ActAsGUI(var msg: TMAVmessage; list: TStringList);
 begin
   ClearGUI;
-  ser:=false;
+  SerialNumberFound:=false;
   timerGUI.Enabled:=true;
+  acEnableTesting.Enabled:=true;
   while (UART.LastError=0) and UARTConnected do begin
     if UART.CanRead(0) then begin
       ReadMessage_BC(msg);
@@ -1546,7 +1666,7 @@ begin
   timerFCcommand.Enabled:=true;
   if cbTelemetry.Checked then begin
     sleep(100);
-    timerTelemetry.Enabled:=true;           {Test telemetry only}
+    timerTelemetry.Enabled:=true;                      {Test telemetry only}
   end;
   while (UART.LastError=0) and UARTConnected do begin
     if UART.CanRead(0) then begin
@@ -1577,20 +1697,20 @@ begin
   until (b=MagicBC) or (UART.LastError<>0) or (not UARTConnected);
   msg.msgbytes[0]:=b;
   len:=UART.RecvByte(timeout);
-  msg.msgbytes[1]:=len;                     {Message length}
+  msg.msgbytes[1]:=len;                                {Message length}
   msg.msglength:=len;
   b:=UART.RecvByte(timeout);
-  msg.msgbytes[2]:=b;                       {Sequ number}
+  msg.msgbytes[2]:=b;                                  {Sequ number}
   b:=UART.RecvByte(timeout);
   if b<>1 then
     exit;
-  msg.msgbytes[3]:=b;                       {SysID}
+  msg.msgbytes[3]:=b;                                  {SysID}
   b:=UART.RecvByte(timeout);
   if b<>1 then
     exit;
-  msg.msgbytes[4]:=b;                       {TargetID}
+  msg.msgbytes[4]:=b;                                  {TargetID}
    b:=UART.RecvByte(timeout);
-  msg.msgbytes[5]:=b;                       {MsgID}
+  msg.msgbytes[5]:=b;                                  {MsgID}
   msg.msgid:=b;
   for i:=6 to len+LengthFixPartBC+1 do begin
     msg.msgbytes[i]:=UART.RecvByte(timeout);
@@ -1615,24 +1735,24 @@ begin
   until (b=MagicFE) or (UART.LastError<>0) or (not UARTConnected);
   msg.msgbytes[0]:=b;
   len:=UART.RecvByte(timeout);
-  msg.msgbytes[1]:=len;                     {Message length}
+  msg.msgbytes[1]:=len;                               {Message length}
   msg.msglength:=len;
   b:=UART.RecvByte(timeout);
-  msg.msgbytes[2]:=b;                       {Sequ number}
+  msg.msgbytes[2]:=b;                                 {Sequ number}
   b:=UART.RecvByte(timeout);
   if b>10 then
     exit;
-  msg.msgbytes[3]:=b;                       {SysID}
+  msg.msgbytes[3]:=b;                                 {SysID}
   b:=UART.RecvByte(timeout);
   if b>0 then
     exit;
-  msg.msgbytes[4]:=b;                       {CompID}
+  msg.msgbytes[4]:=b;                                 {CompID}
   b:=UART.RecvByte(timeout);
-  msg.msgbytes[5]:=b;                       {TargetID}
+  msg.msgbytes[5]:=b;                                 {TargetID}
   b:=UART.RecvByte(timeout);
   if b>0 then
     exit;
-  msg.msgbytes[6]:=b;                       {SubTargetID}
+  msg.msgbytes[6]:=b;                                 {SubTargetID}
   for i:=7 to len+LengthFixPartFE+1 do begin
     msg.msgbytes[i]:=UART.RecvByte(timeout);
   end;
@@ -1652,10 +1772,22 @@ begin
   btnHeightLimit.Enabled:=UARTConnected;
   btnDisableNFZ.Enabled:=UARTConnected;
   btnEnableNFZ.Enabled:=UARTConnected;
+  acEnableTesting.Enabled:=UARTConnected;
   StatusBar1.Panels[2].Text:=rsDisconnected;
 end;
 
-procedure TForm1.acSaveProtExecute(Sender: TObject);
+procedure TForm1.acEnableTestingExecute(Sender: TObject);
+begin
+  btnTurnAll.Enabled:=false;
+  if UARTconnected then begin
+    if MessageDlg(rsConfirm, msgPropellerRemoved,
+                  mtConfirmation, [mbYes, mbNo], 0, mbNo)=mrYes then begin
+      btnTurnAll.Enabled:=true;
+    end;
+  end;
+end;
+
+procedure TForm1.acSaveGUItextExecute(Sender: TObject);
 begin
   SaveDialog1.FilterIndex:=2;
   SaveDialog1.FileName:='TextMessages_'+FormatDateTime('yyyymmdd_hhnnss', now)+'.txt';
@@ -1684,7 +1816,7 @@ begin
   if cbPort.Items.Count>0 then begin
     cbPort.Text:=cbPort.Items[cbPort.Items.Count-1];
     for i:=0 to  cbPort.Items.Count-1 do begin
-      GUItext.Lines.Add(cbPort.Items[i]);                {Make for Win same as for LINUX}
+      GUItext.Lines.Add(cbPort.Items[i]);              {Make for Win same as for LINUX}
       GIMBALtext.Lines.Add(cbPort.Items[i]);
     end;
     StatusBar1.Panels[2].Text:=cbPort.Items[i];
@@ -1769,17 +1901,6 @@ begin
   SendYGCCommand($11);
 end;
 
-procedure TForm1.btnEnableTestingClick(Sender: TObject);
-begin
-  btnTurnAll.Enabled:=false;
-  if UARTconnected then begin
-    if MessageDlg(rsConfirm, msgPropellerRemoved,
-                  mtConfirmation, [mbYes, mbNo], 0, mbNo)=mrYes then begin
-      btnTurnAll.Enabled:=true;
-    end;
-  end;
-end;
-
 {FC sends some special commands to gimbal using the Pan mode.
  Commands:
   16 - ??
@@ -1846,11 +1967,11 @@ begin
   if UARTconnected then begin
     MotorCommand:=Default(TCommandLong);
     MotorCommand.commandID:=209;
-    MotorCommand.params[0]:=255;                     {Motor ID; 255 for all}
-    MotorCommand.params[2]:=29;                      {RPM}
+    MotorCommand.params[0]:=255;                       {Motor ID; 255 for all}
+    MotorCommand.params[2]:=29;                        {RPM}
     if cbHighRPM.Checked then
       MotorCommand.params[2]:=highRPM;
-    MotorCommand.params[3]:=2500;                    {Duration}
+    MotorCommand.params[3]:=2500;                      {Duration}
     CreateGUI_COMMAND_LONG(msg, motorcommand);
     SendUARTMessage(msg, LengthFixPartBC);
   end;
@@ -1913,10 +2034,10 @@ var
 begin
   MotorCommand:=Default(TCommandLong);
   MotorCommand.commandID:=209;
-  MotorCommand.params[2]:=29;                            {RPM}
+  MotorCommand.params[2]:=29;                          {RPM}
   if cbHighRPM.Checked then
     MotorCommand.params[2]:=highRPM;
-  MotorCommand.params[3]:=1000;                          {Duration}
+  MotorCommand.params[3]:=1000;                        {Duration}
 
   if x>240 then vpos:=4 else
     if x>162 then vpos:=3 else
@@ -1928,7 +2049,7 @@ begin
   if hpos=1 then begin
     if (vpos=1) or (vpos=2) then begin
       StatusBar1.Panels[2].Text:=rsMotor+' 1 '+rsSelected+rsACW;
-      MotorCommand.params[0]:=6;                         {Numbering CCW used}
+      MotorCommand.params[0]:=6;                       {Numbering CCW used}
     end;
     if (vpos=3) or (vpos=4) then begin
       StatusBar1.Panels[2].Text:=rsMotor+' 6 '+rsSelected+rsBCCW;
@@ -1985,8 +2106,7 @@ begin
     if SendUARTMessage(msg, LengthFixPartFE) then
       IncSequNo8(SequNumberTransmit);
   end;
-  StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
-  StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+  NumberMessagesInStatusBar;
 end;
 
 procedure TForm1.timerGUITimer(Sender: TObject);
@@ -2006,8 +2126,7 @@ begin
     CreateGUIemptyMsg(msg, 30, 28);                {ATTITUDE}
     SendUARTMessage(msg, LengthFixPartBC); *)
 
-    StatusBar1.Panels[0].Text:='S: '+IntToStr(MessagesSent);
-    StatusBar1.Panels[1].Text:='R: '+IntToStr(MessagesReceived);
+    NumberMessagesInStatusBar;
   end;
   timerSensors.Enabled:=true;
 end;
@@ -2146,25 +2265,25 @@ var
   ex: TDoubleRect;
 
 begin
-  ex.a.x := -AMax;
-  ex.a.y := -AMax;
-  ex.b.x :=  AMax;
-  ex.b.y :=  AMax;
+  ex.a.x:= -AMax;
+  ex.a.y:= -AMax;
+  ex.b.x:= AMax;
+  ex.b.y:= AMax;
   with AChart do begin
     Extent.FixTo(ex);
-    Proportional := true;
-    Frame.Visible := false;
+    Proportional:=true;
+    Frame.Visible:=false;
     with LeftAxis do begin
-      AxisPen.Visible := false;
-      Grid.Visible := false;
-      PositionUnits := cuGraph;
-      Marks.Visible := false;
+      AxisPen.Visible:=false;
+      Grid.Visible:=false;
+      PositionUnits:=cuGraph;
+      Marks.Visible:=false;
     end;
     with BottomAxis do begin
-      AxisPen.Visible := false;
-      Grid.Visible := false;
-      PositionUnits := cuGraph;
-      Marks.Visible := false;
+      AxisPen.Visible:=false;
+      Grid.Visible:=false;
+      PositionUnits:=cuGraph;
+      Marks.Visible:=false;
     end;
   end;
 end;
@@ -2186,34 +2305,34 @@ begin
     Drawer.SetBrushParams(bsClear, clNone);
     Drawer.SetPenParams(psDot, clGray);
     for i:=0 to 5 do begin
-      theta := i * pi/6;
-      P1 := GraphToImage(DoublePoint(AMax*sin(theta), AMax*cos(theta)));
-      P2 := GraphToImage(DoublePoint(-AMax*sin(theta), -AMax*cos(theta)));
+      theta:=i * pi/6;
+      P1:=GraphToImage(DoublePoint(AMax*sin(theta), AMax*cos(theta)));
+      P2:=GraphToImage(DoublePoint(-AMax*sin(theta), -AMax*cos(theta)));
       Drawer.MoveTo(P1);
       Drawer.Lineto(P2);
     end;
 
 // Circles
-    xRadius := ADelta;
+    xRadius:=ADelta;
     while xRadius <= AMax do begin
-      P1 := GraphToImage(DoublePoint(-xRadius, -xRadius));
-      P2 := GraphToImage(DoublePoint(+xRadius, +xRadius));
+      P1:=GraphToImage(DoublePoint(-xRadius, -xRadius));
+      P2:=GraphToImage(DoublePoint(+xRadius, +xRadius));
       Drawer.SetPenParams(psDot, clGray);
       Drawer.SetBrushParams(bsClear, clNone);
       Drawer.Ellipse(P1.x, P1.y, P2.x, P2.y);
-      xRadius := xRadius + ADelta;
+      xRadius:=xRadius + ADelta;
     end;
 
 // Axis labels
-    Drawer.Font := BottomAxis.Marks.LabelFont;
-    h := Drawer.TextExtent('0').y;
-    xRadius := 0;
+    Drawer.Font:=BottomAxis.Marks.LabelFont;
+    h:=Drawer.TextExtent('0').y;
+    xRadius:=0;
     while xRadius <= AMax do begin
       AxisLabels := FloatToStr(xRadius)+MeasurementUnit;
-      w := Drawer.TextExtent(AxisLabels).x;
-      P1 := GraphToImage(DoublePoint(0, xRadius));
+      w:=Drawer.TextExtent(AxisLabels).x;
+      P1:=GraphToImage(DoublePoint(0, xRadius));
       Drawer.TextOut.Pos(P1.X - w div 2, P1.y - h div 2).Text(AxisLabels).Done;
-      xRadius := xRadius + ADelta;
+      xRadius:=xRadius + ADelta;
     end;
   end;
 end;
@@ -2228,7 +2347,7 @@ begin
   DrawPolarAxes(ASender, 90, 15, '°');
 end;
 
-procedure TForm1.PrepareSatPolarDiagram;                 {My settings for the polar diagram}
+procedure TForm1.PrepareSatPolarDiagram;               {My settings for the polar diagram}
 begin
   with SatPolarSeries do begin
     Source:=SatPolarSource;
@@ -2244,19 +2363,19 @@ begin
   end;
 end;
 
-procedure TForm1.PrepareSatSNRBarChart;                  {My settings for the SNR chart}
+procedure TForm1.PrepareSatSNRBarChart;                {My settings for the SNR chart}
 begin
-  with ChartSatSNR do begin                              {for the whole chart}
+  with ChartSatSNR do begin                            {for the whole chart}
     Title.Visible:=false;
     LeftAxis.Title.Caption:=capSatSNR+' [db]';
     LeftAxis.Title.Visible:=true;
     BottomAxis.Marks.Source:=SatSNRBarSource;
     BottomAxis.Marks.Style:=smsLabel;
     BottomAxis.Grid.Visible:=false;
-    BottomAxis.Marks.LabelFont.Orientation := 900;       {gedreht}
+    BottomAxis.Marks.LabelFont.Orientation := 900;     {gedreht}
   end;
 
-  with BarSatSNR do begin                                {For the bar serie}
+  with BarSatSNR do begin                              {For the bar serie}
     Source:=SatSNRBarSource;
     SeriesColor:=clSatUsed;
   end;
