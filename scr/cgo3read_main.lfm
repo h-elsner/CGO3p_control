@@ -1,34 +1,34 @@
 object Form1: TForm1
-  Left = 1743
-  Height = 875
-  Top = 177
-  Width = 1000
+  Left = 48
+  Height = 741
+  Top = 197
+  Width = 1026
   Caption = 'Form1'
-  ClientHeight = 875
-  ClientWidth = 1000
+  ClientHeight = 741
+  ClientWidth = 1026
   Constraints.MinHeight = 740
   Constraints.MinWidth = 1000
   OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
-  SessionProperties = 'cbLimitMsg.Checked;cbPort.Text;cbRecord.Checked;cbSensor.Checked;cbSpeed.ItemIndex;cbSpeed.Text;cbTelemetry.Checked;Height;Left;pcGUI.ActivePage;pcMain.ActivePage;rgYGC_Type.ItemIndex;Top;Width;WindowState;GIMBALtext.Font;GUItext.Font'
+  SessionProperties = 'cbLimitMsg.Checked;cbPort.Text;cbRecord.Checked;cbSensor.Checked;cbSpeed.ItemIndex;cbSpeed.Text;cbTelemetry.Checked;GIMBALtext.Font;GUItext.Font;Height;Left;pcGUI.ActivePage;pcMain.ActivePage;rgYGC_Type.ItemIndex;Top;Width;WindowState;rgAddValue.ItemIndex'
   ShowHint = True
   LCLVersion = '3.7.0.0'
   object upperPanel: TPanel
     Left = 0
-    Height = 857
+    Height = 718
     Top = 0
     Width = 144
     Align = alLeft
-    ClientHeight = 857
+    ClientHeight = 718
     ClientWidth = 144
     TabOrder = 0
     object cbPort: TComboBox
       Left = 9
-      Height = 28
+      Height = 25
       Top = 10
       Width = 128
-      ItemHeight = 0
+      ItemHeight = 17
       ItemIndex = 0
       Items.Strings = (
         '/dev/ttyUSB0'
@@ -45,10 +45,10 @@ object Form1: TForm1
     end
     object cbSpeed: TComboBox
       Left = 9
-      Height = 28
+      Height = 25
       Top = 50
       Width = 128
-      ItemHeight = 0
+      ItemHeight = 17
       Items.Strings = (
         '14400'
         '19200'
@@ -71,9 +71,9 @@ object Form1: TForm1
       TabOrder = 2
     end
     object btnClose: TBitBtn
-      Left = 9
+      Left = 16
       Height = 30
-      Top = 312
+      Top = 408
       Width = 121
       Action = acClose
       Images = ImageList1
@@ -91,17 +91,17 @@ object Form1: TForm1
       TabOrder = 4
     end
     object cbRecord: TCheckBox
-      Left = 9
-      Height = 23
-      Top = 192
-      Width = 82
+      Left = 16
+      Height = 21
+      Top = 232
+      Width = 74
       Caption = 'cbRecord'
       TabOrder = 5
     end
     object Image1: TImage
       Left = 9
       Height = 128
-      Top = 729
+      Top = 590
       Width = 128
       Anchors = [akLeft, akBottom]
       Center = True
@@ -630,12 +630,22 @@ object Form1: TForm1
         3B5AA79EDC6282400000000049454E44AE426082
       }
     end
+    object btnScreenshot: TBitBtn
+      Left = 9
+      Height = 30
+      Top = 184
+      Width = 121
+      Action = acScreenshot
+      Images = ImageList1
+      ImageIndex = 13
+      TabOrder = 6
+    end
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Height = 18
-    Top = 857
-    Width = 1000
+    Height = 23
+    Top = 718
+    Width = 1026
     Panels = <    
       item
         Width = 100
@@ -650,35 +660,35 @@ object Form1: TForm1
   end
   object pcMain: TPageControl
     Left = 144
-    Height = 857
+    Height = 718
     Top = 0
-    Width = 856
-    ActivePage = tsFC
+    Width = 882
+    ActivePage = tsGUI
     Align = alClient
     Images = ImageList1
     ParentFont = False
-    TabIndex = 2
+    TabIndex = 0
     TabOrder = 2
     object tsGUI: TTabSheet
       Caption = 'GUI'
-      ClientHeight = 827
-      ClientWidth = 846
+      ClientHeight = 688
+      ClientWidth = 874
       ImageIndex = 6
       object pcGUI: TPageControl
         Left = 0
-        Height = 812
+        Height = 673
         Top = 15
-        Width = 846
-        ActivePage = tsGPSinfo
+        Width = 874
+        ActivePage = tsSettings
         Align = alClient
         Images = ImageList1
         ParentFont = False
-        TabIndex = 1
+        TabIndex = 2
         TabOrder = 0
         object tsSensorInfo: TTabSheet
           Caption = 'Sensor'
-          ClientHeight = 808
-          ClientWidth = 836
+          ClientHeight = 643
+          ClientWidth = 866
           ImageIndex = 8
           object gbSysStatus: TGroupBox
             Left = 8
@@ -686,8 +696,8 @@ object Form1: TForm1
             Top = 8
             Width = 325
             Caption = 'System status'
-            ClientHeight = 366
-            ClientWidth = 323
+            ClientHeight = 346
+            ClientWidth = 321
             TabOrder = 0
             object vleSysStatus: TValueListEditor
               Left = 0
@@ -708,11 +718,11 @@ object Form1: TForm1
             object SensorLEDPanel: TPanel
               Left = 0
               Height = 90
-              Top = 276
-              Width = 323
+              Top = 256
+              Width = 321
               Align = alBottom
               ClientHeight = 90
-              ClientWidth = 323
+              ClientWidth = 321
               ParentBackground = False
               ParentColor = False
               TabOrder = 1
@@ -727,7 +737,7 @@ object Form1: TForm1
               end
               object lbIGPSOK: TLabel
                 Left = 48
-                Height = 16
+                Height = 17
                 Top = 16
                 Width = 33
                 Caption = 'GNSS'
@@ -743,7 +753,7 @@ object Form1: TForm1
               end
               object lbIIMUOK: TLabel
                 Left = 144
-                Height = 16
+                Height = 17
                 Top = 16
                 Width = 24
                 Caption = 'IMU'
@@ -759,9 +769,9 @@ object Form1: TForm1
               end
               object lbISonar: TLabel
                 Left = 240
-                Height = 16
+                Height = 17
                 Top = 16
-                Width = 35
+                Width = 34
                 Caption = 'Sonar'
               end
               object shapeRSOK: TShape
@@ -775,21 +785,21 @@ object Form1: TForm1
               end
               object lbIRSOK: TLabel
                 Left = 240
-                Height = 16
+                Height = 17
                 Top = 56
                 Width = 63
                 Caption = 'Real Sense'
               end
               object lblFCtime: TLabel
                 Left = 16
-                Height = 16
+                Height = 17
                 Top = 55
-                Width = 29
+                Width = 28
                 Caption = 'boot'
               end
               object lbIIESCOK: TLabel
                 Left = 144
-                Height = 16
+                Height = 17
                 Top = 56
                 Width = 22
                 Caption = 'ESC'
@@ -811,25 +821,22 @@ object Form1: TForm1
             Top = 8
             Width = 248
             Caption = 'Accelerometer'
-            ClientHeight = 207
-            ClientWidth = 246
+            ClientHeight = 202
+            ClientWidth = 244
             TabOrder = 3
             object vleAcc: TValueListEditor
               Left = 0
-              Height = 207
+              Height = 202
               Top = 0
-              Width = 246
+              Width = 244
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
               RowCount = 2
               TabOrder = 0
               TabStop = False
+              OnPrepareCanvas = vleAccPrepareCanvas
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
-              ColWidths = (
-                120
-                122
-              )
             end
           end
           object gbGyro: TGroupBox
@@ -838,17 +845,17 @@ object Form1: TForm1
             Top = 8
             Width = 248
             Caption = 'Gyro'
-            ClientHeight = 207
-            ClientWidth = 246
+            ClientHeight = 202
+            ClientWidth = 244
             Color = 26111
             ParentBackground = False
             ParentColor = False
             TabOrder = 2
             object vleGyro: TValueListEditor
               Left = 0
-              Height = 207
+              Height = 202
               Top = 0
-              Width = 246
+              Width = 244
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -856,10 +863,6 @@ object Form1: TForm1
               TabOrder = 0
               TabStop = False
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
-              ColWidths = (
-                120
-                122
-              )
             end
           end
           object gbBaro: TGroupBox
@@ -868,14 +871,14 @@ object Form1: TForm1
             Top = 248
             Width = 248
             Caption = 'Pressure sensor'
-            ClientHeight = 111
-            ClientWidth = 246
+            ClientHeight = 106
+            ClientWidth = 244
             TabOrder = 1
             object vleBaro: TValueListEditor
               Left = 0
-              Height = 111
+              Height = 106
               Top = 0
-              Width = 246
+              Width = 244
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -883,10 +886,6 @@ object Form1: TForm1
               TabOrder = 0
               TabStop = False
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goAlwaysShowEditor, goThumbTracking]
-              ColWidths = (
-                120
-                122
-              )
             end
           end
           object gbOrientation: TGroupBox
@@ -895,14 +894,14 @@ object Form1: TForm1
             Top = 248
             Width = 248
             Caption = 'Orientation'
-            ClientHeight = 111
-            ClientWidth = 246
+            ClientHeight = 106
+            ClientWidth = 244
             TabOrder = 4
             object vleOrientation: TValueListEditor
               Left = 0
-              Height = 111
+              Height = 106
               Top = 0
-              Width = 246
+              Width = 244
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -910,17 +909,73 @@ object Form1: TForm1
               TabOrder = 0
               TabStop = False
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
-              ColWidths = (
-                120
-                122
-              )
+            end
+          end
+          object rgAddValue: TRadioGroup
+            Left = 8
+            Height = 241
+            Top = 392
+            Width = 185
+            AutoFill = True
+            Caption = 'rgAddValue'
+            ChildSizing.LeftRightSpacing = 6
+            ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+            ChildSizing.EnlargeVertical = crsHomogenousChildResize
+            ChildSizing.ShrinkHorizontal = crsScaleChilds
+            ChildSizing.ShrinkVertical = crsScaleChilds
+            ChildSizing.Layout = cclLeftToRightThenTopToBottom
+            ChildSizing.ControlsPerLine = 1
+            ClientHeight = 219
+            ClientWidth = 181
+            ItemIndex = 0
+            Items.Strings = (
+              'IMU temperature'
+              'Pressure temp'
+              'Roll'
+              'Pitch'
+              'Yaw'
+              'Magnitude'
+              'Altitude MSL'
+              'Altitude realtive'
+            )
+            OnClick = rgAddValueClick
+            TabOrder = 5
+          end
+          object chAddValue: TChart
+            Left = 200
+            Height = 241
+            Top = 392
+            Width = 660
+            AxisList = <            
+              item
+                Marks.LabelBrush.Style = bsClear
+                Minors = <>
+                Title.LabelFont.Orientation = 900
+                Title.LabelBrush.Style = bsClear
+              end            
+              item
+                Alignment = calBottom
+                Marks.LabelFont.Orientation = 450
+                Marks.Format = '%2:s'
+                Marks.LabelBrush.Style = bsClear
+                Marks.Source = DateTimeIntervalChartSource1
+                Marks.Style = smsLabel
+                Minors = <>
+                Title.LabelBrush.Style = bsClear
+              end>
+            Title.Text.Strings = (
+              'TAChart'
+            )
+            Anchors = [akTop, akLeft, akRight, akBottom]
+            object AddValueLineSeries1: TLineSeries
+              LinePen.Color = clNavy
             end
           end
         end
         object tsGPSinfo: TTabSheet
           Caption = 'GNSS'
-          ClientHeight = 808
-          ClientWidth = 836
+          ClientHeight = 643
+          ClientWidth = 866
           ImageIndex = 7
           object gbPosition: TGroupBox
             Left = 16
@@ -928,14 +983,14 @@ object Form1: TForm1
             Top = 16
             Width = 325
             Caption = 'Position'
-            ClientHeight = 247
-            ClientWidth = 323
+            ClientHeight = 242
+            ClientWidth = 321
             TabOrder = 0
             object vlePosition: TValueListEditor
               Left = 0
-              Height = 247
+              Height = 242
               Top = 0
-              Width = 323
+              Width = 321
               Align = alClient
               DefaultColWidth = 90
               FixedCols = 0
@@ -945,7 +1000,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking, goCellHints, goCellEllipsis]
               ColWidths = (
                 90
-                229
+                227
               )
             end
           end
@@ -955,14 +1010,14 @@ object Form1: TForm1
             Top = 512
             Width = 325
             Caption = 'Velocity [m/s]'
-            ClientHeight = 153
-            ClientWidth = 323
+            ClientHeight = 148
+            ClientWidth = 321
             TabOrder = 1
             object vleVelocity: TValueListEditor
               Left = 0
-              Height = 153
+              Height = 148
               Top = 0
-              Width = 323
+              Width = 321
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -972,7 +1027,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 120
-                199
+                197
               )
             end
           end
@@ -980,7 +1035,7 @@ object Form1: TForm1
             Left = 352
             Height = 264
             Top = 16
-            Width = 480
+            Width = 510
             AxisList = <            
               item
                 Marks.LabelBrush.Style = bsClear
@@ -1013,9 +1068,9 @@ object Form1: TForm1
           end
           object SatPolar: TChart
             Left = 352
-            Height = 368
+            Height = 323
             Top = 312
-            Width = 480
+            Width = 510
             AxisList = <            
               item
                 Marks.LabelBrush.Style = bsClear
@@ -1049,9 +1104,9 @@ object Form1: TForm1
           end
           object lblNotUsed: TLabel
             Left = 512
-            Height = 16
+            Height = 17
             Top = 288
-            Width = 55
+            Width = 54
             Caption = 'Not used'
           end
           object shapeUsed: TShape
@@ -1065,7 +1120,7 @@ object Form1: TForm1
           end
           object lblSatUsed: TLabel
             Left = 608
-            Height = 16
+            Height = 17
             Top = 289
             Width = 30
             Caption = 'Used'
@@ -1076,14 +1131,14 @@ object Form1: TForm1
             Top = 289
             Width = 325
             Caption = 'Compass'
-            ClientHeight = 199
-            ClientWidth = 323
+            ClientHeight = 194
+            ClientWidth = 321
             TabOrder = 4
             object vleMag: TValueListEditor
               Left = 0
-              Height = 199
+              Height = 194
               Top = 0
-              Width = 323
+              Width = 321
               Align = alClient
               DefaultColWidth = 120
               FixedCols = 0
@@ -1093,44 +1148,44 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 120
-                199
+                197
               )
             end
           end
           object lblFCtimeGPS: TLabel
-            Left = 760
-            Height = 16
+            Left = 793
+            Height = 17
             Top = 289
-            Width = 59
+            Width = 56
             Anchors = [akTop, akRight]
             Caption = 'Boot time'
           end
           object lblSysTime: TLabel
             Left = 352
-            Height = 16
+            Height = 17
             Top = 289
-            Width = 46
+            Width = 44
             Caption = 'Systime'
           end
           object lbIGPSsats: TLabel
             Left = 40
-            Height = 16
+            Height = 17
             Top = 697
-            Width = 24
+            Width = 23
             Caption = 'GPS'
           end
           object lbIGLONASSsats: TLabel
             Left = 128
-            Height = 16
+            Height = 17
             Top = 696
-            Width = 58
+            Width = 57
             Caption = 'GLONASS'
           end
           object lbISBASsats: TLabel
             Left = 240
-            Height = 16
+            Height = 17
             Top = 696
-            Width = 31
+            Width = 29
             Caption = 'SBAS'
           end
           object picGPS: TImage
@@ -1159,24 +1214,24 @@ object Form1: TForm1
           end
           object lblOtherSats: TLabel
             Left = 16
-            Height = 16
+            Height = 17
             Top = 728
-            Width = 59
+            Width = 56
             Caption = 'Othersats'
           end
         end
         object tsSettings: TTabSheet
           Caption = 'System'
-          ClientHeight = 808
-          ClientWidth = 836
+          ClientHeight = 643
+          ClientWidth = 866
           ImageIndex = 9
           ParentFont = False
           PopupMenu = mnLicense
           object cbSensor: TCheckBox
-            Left = 8
-            Height = 23
-            Top = 617
-            Width = 81
+            Left = 16
+            Height = 21
+            Top = 571
+            Width = 72
             Anchors = [akLeft, akBottom]
             Caption = 'cbSensor'
             TabOrder = 0
@@ -1187,14 +1242,14 @@ object Form1: TForm1
             Top = 16
             Width = 329
             Caption = 'Device information'
-            ClientHeight = 159
-            ClientWidth = 327
+            ClientHeight = 154
+            ClientWidth = 325
             TabOrder = 1
             object vleSystem: TValueListEditor
               Left = 0
-              Height = 159
+              Height = 154
               Top = 0
-              Width = 327
+              Width = 325
               Align = alClient
               DefaultColWidth = 110
               FixedCols = 0
@@ -1204,7 +1259,7 @@ object Form1: TForm1
               Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goThumbTracking]
               ColWidths = (
                 110
-                213
+                211
               )
             end
           end
@@ -1214,12 +1269,12 @@ object Form1: TForm1
             Top = 16
             Width = 472
             Caption = 'Flight Boundaries'
-            ClientHeight = 174
-            ClientWidth = 470
+            ClientHeight = 154
+            ClientWidth = 468
             TabOrder = 2
             object speGeoFence: TSpinEdit
               Left = 253
-              Height = 28
+              Height = 25
               Top = 24
               Width = 82
               MaxValue = 2500
@@ -1229,7 +1284,7 @@ object Form1: TForm1
             end
             object speHeightLimit: TSpinEdit
               Left = 253
-              Height = 28
+              Height = 25
               Top = 64
               Width = 82
               MaxValue = 1000
@@ -1239,44 +1294,44 @@ object Form1: TForm1
             end
             object lblNewValue: TLabel
               Left = 253
-              Height = 16
+              Height = 17
               Top = 0
-              Width = 61
+              Width = 60
               Caption = 'New value'
             end
             object lblCurrentValue: TLabel
               Left = 160
-              Height = 16
+              Height = 17
               Top = 0
-              Width = 80
+              Width = 77
               Caption = 'Current value'
             end
             object lblGeoFence: TLabel
               Left = 8
-              Height = 16
+              Height = 17
               Top = 28
-              Width = 134
+              Width = 129
               Caption = 'Geo fence (20-2500m)'
             end
             object lblHeightLimit: TLabel
               Left = 8
-              Height = 16
+              Height = 17
               Top = 65
-              Width = 143
+              Width = 136
               Caption = 'Height limit (20-1000m)'
             end
             object lblGeoFenceVal: TLabel
               Left = 176
-              Height = 16
+              Height = 17
               Top = 28
-              Width = 24
+              Width = 21
               Caption = '100'
             end
             object lblHeightLimitVal: TLabel
               Left = 176
-              Height = 16
+              Height = 17
               Top = 65
-              Width = 24
+              Width = 21
               Caption = '120'
             end
             object btnGeoFence: TButton
@@ -1326,9 +1381,9 @@ object Form1: TForm1
             end
             object lblOK: TLabel
               Left = 212
-              Height = 16
+              Height = 17
               Top = 112
-              Width = 3
+              Width = 4
               Caption = ' '
               Font.Style = [fsBold]
               ParentFont = False
@@ -1336,19 +1391,19 @@ object Form1: TForm1
           end
           object gbMessages: TGroupBox
             Left = 352
-            Height = 475
+            Height = 430
             Top = 200
             Width = 472
             Anchors = [akTop, akLeft, akBottom]
             Caption = 'Messages'
-            ClientHeight = 458
-            ClientWidth = 470
+            ClientHeight = 408
+            ClientWidth = 468
             TabOrder = 3
             object GUItext: TMemo
               Left = 0
-              Height = 458
+              Height = 408
               Top = 0
-              Width = 470
+              Width = 468
               Align = alClient
               Font.Height = -16
               Font.Name = 'Courier New'
@@ -1363,10 +1418,10 @@ object Form1: TForm1
             end
           end
           object cbLimitMsg: TCheckBox
-            Left = 8
-            Height = 23
-            Top = 649
-            Width = 188
+            Left = 16
+            Height = 21
+            Top = 603
+            Width = 173
             Anchors = [akLeft, akBottom]
             Caption = 'Limit text messages to 600'
             TabOrder = 4
@@ -1374,7 +1429,7 @@ object Form1: TForm1
           object btnSaveMsg: TBitBtn
             Left = 224
             Height = 30
-            Top = 641
+            Top = 600
             Width = 113
             Action = acSaveGUItext
             Anchors = [akLeft, akBottom]
@@ -1388,8 +1443,8 @@ object Form1: TForm1
             Top = 200
             Width = 329
             Caption = 'Test motors'
-            ClientHeight = 358
-            ClientWidth = 327
+            ClientHeight = 338
+            ClientWidth = 325
             TabOrder = 6
             object btnEnableTesting: TButton
               Left = 8
@@ -1411,9 +1466,9 @@ object Form1: TForm1
             end
             object lblEnableTesting: TLabel
               Left = 8
-              Height = 16
+              Height = 17
               Top = 16
-              Width = 106
+              Width = 102
               Caption = 'lblEnableTesting'
               Font.Color = clRed
               Font.Style = [fsBold]
@@ -1422,8 +1477,8 @@ object Form1: TForm1
             object picMotors: TImage
               Left = 0
               Height = 247
-              Top = 111
-              Width = 327
+              Top = 91
+              Width = 325
               Align = alBottom
               Center = True
               OnMouseDown = picMotorsMouseDown
@@ -3652,10 +3707,10 @@ object Form1: TForm1
             end
             object cbHighRPM: TCheckBox
               Left = 128
-              Height = 23
+              Height = 21
               Hint = 'Handle with care'
               Top = 50
-              Width = 54
+              Width = 45
               Caption = 'RPM'
               TabOrder = 2
             end
@@ -3666,7 +3721,7 @@ object Form1: TForm1
         Left = 0
         Height = 15
         Top = 0
-        Width = 846
+        Width = 874
         Align = alTop
         Caption = 'Yuneec Typhoon H GUI replacement'
         Color = clSilver
@@ -3677,18 +3732,18 @@ object Form1: TForm1
     end
     object tsYGC: TTabSheet
       Caption = 'YGC'
-      ClientHeight = 827
-      ClientWidth = 846
+      ClientHeight = 688
+      ClientWidth = 874
       ImageIndex = 1
       object panelRight: TPanel
-        Left = 720
-        Height = 695
+        Left = 748
+        Height = 556
         Top = 132
         Width = 126
         Align = alRight
         BevelColor = clRed
         BevelWidth = 2
-        ClientHeight = 695
+        ClientHeight = 556
         ClientWidth = 126
         ParentBackground = False
         ParentColor = False
@@ -3760,9 +3815,9 @@ object Form1: TForm1
         end
         object lblPowerCycle: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 271
-          Width = 97
+          Width = 96
           Caption = 'Power cycle cam'
         end
         object btnAccCali: TButton
@@ -3780,13 +3835,13 @@ object Form1: TForm1
         Left = 0
         Height = 132
         Top = 0
-        Width = 846
+        Width = 874
         Align = alTop
         ClientHeight = 132
-        ClientWidth = 846
+        ClientWidth = 874
         TabOrder = 1
         object GIMBALtext: TMemo
-          Left = 448
+          Left = 476
           Height = 130
           Top = 1
           Width = 397
@@ -3804,37 +3859,37 @@ object Form1: TForm1
         end
         object lblBootTime: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 40
-          Width = 78
+          Width = 77
           Caption = 'Boot time [s]:'
         end
         object lblGimbalBootTime: TLabel
           Left = 128
-          Height = 16
+          Height = 17
           Top = 40
-          Width = 71
+          Width = 68
           Caption = 'Time stamp'
         end
         object lblSerialNo: TLabel
           Left = 8
-          Height = 16
+          Height = 17
           Top = 64
           Width = 32
           Caption = 'Serial'
         end
         object lblSerial: TLabel
           Left = 128
-          Height = 16
+          Height = 17
           Top = 64
           Width = 95
           Caption = 'Gimbal serial no'
         end
         object lblWarning: TLabel
           Left = 8
-          Height = 19
+          Height = 21
           Top = 8
-          Width = 360
+          Width = 364
           Caption = 'No warranty. You use this tool on your own risk!'
           Font.Color = clRed
           Font.Height = -16
@@ -3844,7 +3899,7 @@ object Form1: TForm1
       end
       object gridStatus: TStringGrid
         Left = 8
-        Height = 680
+        Height = 541
         Top = 144
         Width = 280
         Anchors = [akTop, akLeft, akBottom]
@@ -3857,7 +3912,7 @@ object Form1: TForm1
       end
       object gridVarious: TStringGrid
         Left = 296
-        Height = 680
+        Height = 541
         Top = 144
         Width = 272
         Anchors = [akTop, akLeft, akBottom]
@@ -3882,8 +3937,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 151
-        ClientWidth = 126
+        ClientHeight = 146
+        ClientWidth = 124
         ItemIndex = 0
         Items.Strings = (
           'GYRO_POWER'
@@ -3907,8 +3962,8 @@ object Form1: TForm1
     end
     object tsFC: TTabSheet
       Caption = 'FC'
-      ClientHeight = 827
-      ClientWidth = 846
+      ClientHeight = 688
+      ClientWidth = 874
       ImageIndex = 5
       object knPanControl: TmKnob
         Left = 208
@@ -3934,8 +3989,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 104
-        ClientWidth = 46
+        ClientHeight = 99
+        ClientWidth = 44
         ItemIndex = 0
         Items.Strings = (
           'F'
@@ -3958,8 +4013,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 104
-        ClientWidth = 46
+        ClientHeight = 99
+        ClientWidth = 44
         ItemIndex = 0
         Items.Strings = (
           'A'
@@ -3980,9 +4035,9 @@ object Form1: TForm1
       end
       object lblPanControl: TLabel
         Left = 224
-        Height = 16
+        Height = 17
         Top = 16
-        Width = 32
+        Width = 28
         Caption = '2048'
       end
       object btnCenter: TButton
@@ -3996,9 +4051,9 @@ object Form1: TForm1
       end
       object cbTelemetry: TCheckBox
         Left = 8
-        Height = 23
+        Height = 21
         Top = 160
-        Width = 62
+        Width = 53
         Caption = 'Telem'
         TabOrder = 5
       end
@@ -4006,7 +4061,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 8
-        Width = 551
+        Width = 579
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -4033,7 +4088,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 208
-        Width = 551
+        Width = 579
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -4060,7 +4115,7 @@ object Form1: TForm1
         Left = 288
         Height = 207
         Top = 416
-        Width = 551
+        Width = 579
         AxisList = <        
           item
             Marks.LabelBrush.Style = bsClear
@@ -4085,9 +4140,9 @@ object Form1: TForm1
       end
       object lblGimbalVersion: TLabel
         Left = 32
-        Height = 16
+        Height = 17
         Top = 199
-        Width = 64
+        Width = 63
         Caption = 'Gimbal FW'
       end
       object btnGimbalCali: TButton
@@ -4141,6 +4196,11 @@ object Form1: TForm1
       Enabled = False
       OnExecute = acEnableTestingExecute
     end
+    object acScreenshot: TAction
+      Caption = 'acScreenshot'
+      ImageIndex = 13
+      OnExecute = acScreenshotExecute
+    end
   end
   object XMLPropStorage1: TXMLPropStorage
     StoredValues = <>
@@ -4148,7 +4208,7 @@ object Form1: TForm1
     Top = 432
   end
   object SaveDialog1: TSaveDialog
-    Filter = 'CSV file|*.csv|Text files|*.txt|All files|*.*'
+    Filter = 'CSV file|*.csv|Text files|*.txt|Screenshot|*.png|All files|*'
     Left = 40
     Top = 264
   end
@@ -4205,158 +4265,162 @@ object Form1: TForm1
     Left = 88
     Top = 424
     Bitmap = {
-      4C7A0D0000001000000010000000CD1200000000000078DAED9A09349679DFC7
-      3DEFDB34EACCBCD33BEFBCD334CF9379669E9936934AABC95A09155A894821A4
-      6449CA5AC82E7247594296A8EC24D985246B22A445B2854835F65BDFE7FFBFEA
-      96E5A6CCFB3CE7BCE74CD739DF73BBAFFBFAFC7FBFFF6FF95FD7FFAAACAC2C9E
-      2CA2CB97F3F97C7D8B97060515CCCB7A776EB8E8EF7C7C5D5573E6B41471FB5D
-      56B6CA8787A709336796D6B1582C91E1BFD1310504EAB2DFFE1E5BE7E8E8A875
-      EDDAB57923F92CC2678287271622223655717171221CBB6FD902D0DFBFFA6A13
-      F6EEDD0B7777F7ECE4E464BEF7FC631FCE354B9786213C3C5C8B9EA73E53BB6F
-      C796C4AC59B370E2C409460909094B39BCA666ADD9E79F5774BDBDCE86F87000
-      DF7CD346FE7EC6F8C4C32342BE7FC3707676766D9191915B46C7808EC1C353F1
-      CE5625DEDB3D0C123C181A1A32ECE5CB9755B8C5908A87E7F53B86A34B84DD84
-      03070E30B6B9D99D98F721F1583A34E7F1384E7EDFCE77381F44F80D2039AB1B
-      9DB391F96B22F16F1BC5BE151F9F07484D688DC7B258A5227C7C8F89EDDC778C
-      C73BBDF7414020285B5656D367344B6B6BE6CCDE3A1E9EFB43D7CE9F2F4E940A
-      4E3DBCD71C484A4A860CE769CDBFCF53103EFBEC33AC59B38689D5AA550FABDE
-      8EF13EFFCECECE55C3EB6E243F6788E5D4E7DB7C8C9FFFB8B89BDF1C3E5CAA25
-      2060962D22223BC472627DF8708596A6262BE443F9277EF9989B9B33D7F8FAFA
-      8E8813ED057A9E5BDD0D3F7EFCF1A71F677EFB9DC878E2E3FBBBC8F7DF7FFF17
-      9E710E395979174B4B4B7064F14E9CEFC6C64706040505A78CC7CB6E9273B1B5
-      B585BDBD3D4E9F3E3D24070747D0F3464687D913F173E7CE55BA77EF1EAAABAA
-      515DFD5E959595B87BF72EB66DDB1EF8C5175F8C87F3F0F3FFBA96D866C7C6C4
-      62B888FD37DFFEEF7762B3667DFFC378ECD4A953A7888888561F397284F175B8
-      E83972C97FF14C70080A2ED315131363E2E4E6E63642F4DC44FC975F7EF985A4
-      E4FA3631317108AF16F12731F2A0DA2CBFB5CCC2C212C78E99F6090A2E15198F
-      9FF1D58CF9A222A258BD5AF816FD3E7DFAF4BFAC9158E7E3719A85AAAA2AD4D4
-      D4A0B8B818D2D23296DCF805F3F9E568DD2F5FB622967E5FB54A48F1CE9D3214
-      1414203D3D9D514949096EDDBA85A582CB1446F3BB77EFF696939383949434E4
-      E4E45F2A2828F61B1A1AD17CE3F1E3C7247F55CC18348792EBD6BB8CE6555555
-      199E70D8BA752B366D927DA3A3A3035D5D5D343636E2D1A347433E48AE931AC3
-      FFFCF32FCB7EF9658E8B98A8B8DD82F90B2457FF26AC71FFFE7DDCCABB85D4D4
-      54A234662ED47F0989B52767CC5C3C83F7BF17CF98A8169C9C5C22939353BA2A
-      2A2A406B323F3F9FF4DF152C5C28B0FA1FA217F4672EBF60C4F38183C471BB86
-      BAE6150B73CBDB7E7E7E6C11295D273E21F78D7C729D2933FE2AFE2DCF240E52
-      F75F7F357BF30A812D59F6D3BF15FFDBF0DF4A8CF4F147C5E13B6FA4215F4305
-      E31DECDE1EF4BEECC0EFAD4DCC75F9CEF6D05BB368041FB279231363AA1B376E
-      30F97AF8F0218A0B6EA320371B19D71290161F8D745505901A1DC32B2F9C0F71
-      7171A6E768FEE5E5E5E1EAEC8484E8481CD2D581B0D04A981AE9C153661DCACE
-      B1C6F0D97B94A0ACAC8C868606F4F6F64265D72E9CB030677C6E7954856D721B
-      71273B1939E43A6EFED379519ED65CD7CB4E1CD0D18698F06AB43EAEC6F3DA4A
-      6CDD248392F404E6BA6C1BAB317CAA8A0256AE5C89F8D818686BAA23D4DF0F9B
-      A4D7437FFF3EDC2FB881250BF9117CC689E1D34C8F70B5DFDFF51ADD1DAD78D5
-      FC141D4F6BD0F6B01CCD958568B8938BBA827446F4BA4483836378CE181F1265
-      A3B535C6F0EDE9D7D19C188B2791E1A8090D4485DF39949C71636245E74B7D8E
-      3FA083087535842A298CE0B9B1856ECEB8696F834C2B53241F311CC1066C961D
-      C1D7C746E0D1A510182A4B4F280E7B4E6ADD089EB255817ECC35B4B656FCFC57
-      A66E7B48CD76363C66E2E66AA23DC47AAE151FC15396D614E5057EF80E6A9BD7
-      8FA87F3A06E539EC689EB274BE94CF8A8F406EDA751490980E17E539EC709E1E
-      F4EF3F2272F04C460FAFD8895604590CDCF135E82EF0D0929EE8DAE75941539A
-      53CFF335267A0AD546BBC8DD0FB7F6AC0EB74155A40BCAC34FE2869D42F7786C
-      6B46E0B4A6EBDE79F557CFA036CE0D35114EA88972C5C3446F54C59C46919F31
-      928EADEB1F8F6F4CF4326948F147536E049E6684E271F279DC8F3F83B290E328
-      0BB343EAF12D88D61515E3C63E48F59E7333C17EF06946086A937C71EF923DEE
-      0459A2D0F7304A824F20D3451D113AC25EDC7DF68D498967F51DBD6983C4586B
-      54C7927B68B43B6E9FD3478EBB16F2FD4C1067B801C1CA2BE586B32DE901531A
-      93CED534A40682EA42981DDBE4C671C4BA2BB36F9DD547618039D2EC9490C33A
-      88300D31F86E5E223462BE57597C4FE2DCDFCE373314D5516EB8E469D81FE1AC
-      7834F498343BF5A42AB2DCF723CD792FCE6F5D0E8F75BFF20DE71F45390A3D20
-      31AE4B0F46E51507DC4FF04449A019BC9CD406F4D22C70467F3D628FC823545D
-      02EE6BF96B5C24E64D19CE57065BC855845831F9A1B12AF2354669A82DF27D4D
-      60E9AA09DDEB6670DDBC7CC04D62418CA3F8DC69A36357E2AD17574EE25C19E9
-      86DBDE86C83DAD834C673564BB6B93786BE2B88ED480BD9CE07C6EF92AF2DC6F
-      54E26F827B91AE2824F12DBA60C1C4F9A6973E33E7483D6978CB2E31E1C6921A
-      362CF231C49D106BC6DF0226CEAA88319441B8A638021457E1DC86C579EE6B7F
-      9DC68DCF71544269B0258A495D64B96A21D6480617555779052A2E93F32639F2
-      9411E0735FBB60CA78759A62BE01594E6AC87452478C9E14AD0B89C9F4639C81
-      C4CC88FD22085713EA0E545C2E36D97EFE903AF3AE4C799E13CA47EA5388F494
-      1CE96363D2C7FDE501264924EE5327625FE4864F7B9E1194D79CEA8F866BE7F0
-      249E851AD20BB4464A496DE5D82B264DC4139B26CFB242D1921F8BC69CCB4C6D
-      3EBCE6837B11CEB8134AFACB64FCFE277D38F5699C7B4FF38D4B789212886AB2
-      E6DCBD688312FFA3A4FF4F22C35E0551FB458C27B24FE669773FC21135F19E4C
-      1F17FA183175997FFE18E28DC6F6F0BB358F2F2020E0BC8F8F4F20FD7ECB7D9F
-      0599670FEDFFC2408B773D7C80F4B028ADC9A11E6ECFB9388DAC1F312531BEBD
-      494949484B23EBBDAB2B330699A770B49E7877AAAD0AA9676DA43AEF81CFE6A5
-      B40FF986ADB335CFB242D0981982447FE781E8E868FA1C14686666F69F64DFF9
-      35A90F615293DD51469B10AC26063789F9358E6273A7BC8D95371F5D679FE545
-      A13E2B0C0F62DD71F59461DF0D475551C2066A6B6B579367F4EFBC362C122636
-      BB48EFC7D88BFE32D40F4FA25D851E45BB32EB6C355943E8DA41F31B726C67FF
-      993367E8BE133B76ECA826CFE85F139B7CA3635675F1B85C55980D935BCE3A5B
-      4AF27BCBC7184E077792FD9703D917C8058E97A7126F03E33B411623D6D97447
-      122BB2EEA439EE85ED16E17ECB8DABB8F66FB197EED43CD73DFD6561B6280A34
-      67D6596A97AEB319A7F6E1D27E49F2BC2860329EED5C47E5FE3C960ED3FF37CF
-      1AE09AF93644E8AE47C86E11CE3A9B47623D6DDCFEB7D89094E9A082642B0584
-      ABFFD64F7AD8D86F8BA09C97CC22219ADFD1EBEC68C5EA8B4F8BD0124E0A555D
-      D51FB07DD9D47F75FF7334EBC04A47A2574478F7E9C8F9CDD4D494E6176FF770
-      52A0FB58FA1CBB68D122CC9B370FB3A57EC53CD76DD04C3905AFBBF1CC27FD4E
-      C670A5BCAFAF2FCACACA50585888DCDC5CA6F6AF5EBD8A888808848484E0073D
-      61A8A7B8604F8A03F32CB527D901DA69EE94EFA17C707030B367888989A1EF4E
-      E83B1A787A7A82D43E0C0C0CB0C47C13CE575C1BF13C46FDA073A17C6868E876
-      A2BEC0C040B2E7349AADA4A4845DE4D95F5A5A9ABE2FC23A3B159C2E8F03AB32
-      8E61F7A5B98EB04F75F1E2C5EDFEFEFEA5D6D6D6B1090909CC7E313333131919
-      19708DF0C6DE086B78555C454AD31DE8A6BA63A1BBE2D0FCA9CE9F3F3F9BC562
-      5DA7FB54CA070505819CA3EF7298CF13FE2ED8E5690079372D889F547A2D704C
-      C662787E48BF1BE4E4E4307B751A071ACFCECE4EBC78F182D9478585853131B2
-      B0B0A03932189D5FE267D283070F18BEB5B515356545E47EEA81FA686734DD2F
-      67F644343F51515134CF63D66DB2BF6D7DF6EC19B3D7EEEBEB43A80F0B0DE499
-      ABEDBA0F9AE34EA3A7A787E18B8A8AA0A8A8D83A9A277BFBD6E7CF9FA3BEBE1E
-      FDFD84F7F3444D72301A5383C8DA7B96E1E93CA87FEAEAEA6378B25F4F6A6F6F
-      677C7FFDFA356A2B8A70918C11EA7B060FCB0AD0D2D282F2F272949696424F4F
-      6F8CFF75757506947DF5EA1513B3AEAE2E0CF4F733BED071A9DDDADA5A242727
-      C3CACA6A4CFC9A9A9A6613C5BE7CF992613B3A3A98DCA7A4A4E0C99327CCBCE8
-      18E4DE107BF6ECD9D9DC7A8CC44F88F8194B59EA031D8BDA26E3322CE98B5892
-      67A109EF992D2DB3DBDADA0CC86712D987B69279B5923D7412892FAD8FD97FA4
-      F789CF06A4062BFDFCFC06C87D6D60322CE90903C275D1FAA1F322739FD49E83
-      B0954F9F3E45737333137B7A3F990CEFEDED3D406DD3BC93FECAA6E7E83B3572
-      6FA5EBC407E742FC65D39ABE79F3265D5B6E9C3A752A27323292792F46EE4B13
-      F25E5E5ED2C4DF37F41D107DFF43D7355A0FD9D9D9CC3A67676757C98DAB8F72
-      61D5843B96127F0768CFD29EA19F797979A03D9E95958593274F76D9D8D88CA9
-      C3BACB4EAC66D2774DD7BC517DD9957967969898082727A737D45F6273803C17
-      5492758A0BEBC06A4A3A8F17A569E82849C153724FBFEB674EDFFDF7D8DBDBFF
-      63A2B9D685DB11D68770A968C90AC7B3F4103CCF4F406DA835EE3AA9DE9E88AD
-      BD68CB6ABAEA8D8EE214B4645E44E3D5B3684EF6475B5E341E079AE29EED962B
-      E3B3C7594DE479A3A3E83A5A32084BFE6E4AF2436B6E141E071C43B9B57CE444
-      B61F91F1DB8B92187F1BE258246EBE68CD89C4E3F3C6283F2E1BF9A1FA78409E
-      37DAC93C9BAFFB81CEA1352782B08751662913F331F579DF635F118D516B7604
-      5AB32EE121D98B94994BC54CA6C6EF3928DE2331223637A2CC5472522CE6908F
-      4FFAA44FFA53EA477CD2277DD29F5587C832F0499FF4497F4EFDBBDE17FEBB24
-      17ACE8B1C17FEBF13FC2CA0629786824E8412D663F243C644C27C36EBAB0C343
-      3DFE206CCADC61966F07C5B03D587552CCFC63D88D81DB3DF6C4EAC2BAF4148E
-      97BA6067F85E08D9896399D56FBC9C6BD45275D7AA2469EF1BC3066CF3A0FE1E
-      2F71865589136377A58D087BA9A5D07B36455758E59A56935E96297644AAE973
-      CE933879EC8ED68165B1132C8A1DA070510D2BAC85D98216AB86D8DDC9FBD7EF
-      4AD46A30BD6D8F1325A7B0254C994DE2A42F737E8B8B4A94362C8AEC615A6887
-      EDA1AA587E62357B89F94ADEE1FE295FDD374D29560307D24D70F2EE6998DDB6
-      C39E785D685CD5C3B1DBB6385668836D212A5876FCB7C125662B78B9C567DB65
-      95E9C42E3412F598399A1739C0A4C01A26B7ADB1355899C6E9CD62D3E5BC13C6
-      3860DB7419DF2DD815A989A3053630CEB7C2960B4A20717AB3E8D8C42C476B58
-      32D3C5DDA4B09DF82B1FA80812A737024797F14EA64E485EA7AFB4150189D380
-      80C9D2CFFF489D92384D5F7844F0F3FF8FFDA7B1A777FA78BF1D35C60F44FCE3
-      FDAEAED6CBAFBAAB475F49A14B941B6B76143035790323FDC13163ECDDDDCBAF
-      B9B717BA3A7DD8BEE5F52579D957F347B3D656546F606C388883FB0786C6D8A3
-      DAC34F6C435F6F00561600FD7B8354A7BEE49A8EFFA0BF9B1C06AFB1E19B414B
-      B3377076002C4C191E1A7BFBF8D5547AF8896D1C3AD80F4B3360AF5A0F64D677
-      B2D749747C36DC3FC34383BC870EB0D9478D07616F03981C664353BD17C436F4
-      74FB614E561BFAB7B4E40BF65A890EAE35B55F7B80574BA38F6D40FC3C41E662
-      654E7D21312173DBADD203A9752FD86BC43B26AC47E22BAFAA72F7A025E176EF
-      0276ED24BE1803EBD7BE1894106BFF602DAB2875D31C913C004A0A80E276C0C8
-      00905EDF0961A136FE89D85D3BBBF95594BBA1ADD90F6323E030E10C0E91FBCC
-      4132CE8E1E8889744070F133AE63282B76F1EF52EA869606610D01E59DDD2071
-      628B0A3F1FDC2CFB3B74B481CD725D58B1AC0D0BE6368E1883D4133FB18D7DEA
-      FD3034A07E7783C4892DBAFA39AFD0CA36DEE5822D6C29C957D050073648FF8E
-      450B5BF0D3DFEB87C620F524B153A18BE4BB1F3B777483C4892DF2DBF3A1582D
-      5ED8CCFBEB8226B684D84B6CDAD08D258B5AF1C3ECA723FE9D9ED49384FCA657
-      10176D1F24711A13E7B9BF34F2FEFC53039B1BCB919848BBC4EA556DE3E6E8C7
-      1FEA79F9FEF654E25FD9CF25D7AF809B3EF6FF15D26B471FF4DC7EA925F8BFF0
-      AFDB9A3E6A0C0E5F7BD996D170FB1C4DC6FE406F0FBA5FBEC0CBD666B437D47E
-      34CFB13F5C4F2EBB7015377EB4DD96C7D5CCB5A38F67E4DC4DDDF73E51BEAFEB
-      F5B8F6471FF41C8D6DC4F679E0F0BF77B4E145733DDAEA1EA2F9C13D345697A1
-      EE6EC1105F6EABC888C3539623CA0F67EBEF15A3B6340F0F6E678EB13FD8DB85
-      FE97ADE86DAD4577FD3D78ACFB1F8637535ECF55A3ED0FD7EF8F8A187EA2DC70
-      F8D17629FBAA32E7A37876572757FB9D77523E8AEF6B6F444F530DBA9E94E175
-      4D3E6397B21D05B11FC50F675F9667E0457122DA6F4532FA189E5E3391FE09F4
-      963C50
+      4C7A0E0000001000000010000000571300000000000078DAED9B075455D7B686
+      B9EF19838EE4C597971763EE95949BD888A85889541501A5D9401004010151A4
+      88285501E9087204A5234550418A8848475044A488202016449A80206A28C2D1
+      FFAEB5F120E580E2BB19E38D11F718FF38E7ECBDBE35E79A6BCEB5F7DA684E4E
+      0E4F0ED1D9B3057C0101C58BC3C20AE7E4BC3D3754F43A1F5F57D5AC592D45DC
+      AECBC955F9F3F03461FAF4D23A168B2532F41AED5340A02E77E07A429D8B8B8B
+      EEA54B97E60CE773089F0D1E9E048888D8572526268A70EC0EB085A0D7BFFA4A
+      163B76EC809797576E6A6A2ADF3BFEA13FA7CDE2C551888E8ED6A5E7A9CFD4EE
+      40DF92983163060E1F3ECC282929693187D7D1A9B5FCFCF38AAE8176F6C487DD
+      F8E69B36F2FD09E3130F8F08F9FD0DC3393A3AB6C5C6C66E181903DA070F4FC5
+      5B5B957867771F48F0606262C2B067CF9E55E316432A1E9E976F198ECE105616
+      BB77EF666C73B33B3EEF4FE2B17870CC63719CF91D18EF503E8CF0EB40E6AC6E
+      E49C0D9FBF2612FFB611EC80F8F8BC417242772C96C52A15E1E37B486C5F7DCB
+      78BFD53B1F0404C272E5E474FC47B234B7A64FEFADE3E1B93BD876EE5C71A274
+      70F2E19D664152523262284F73FEDD3C85E1B3CF3EC3AA55AB9858AD5871BF6A
+      A08F77F3EFE6E6563534EF86F3B306594E7E0ECCC7D8F39F9878ED9B7DFB4A75
+      05042C734544E406594EACF7EDABD0D5D16145BC6FFE895FFE5656564C9B8080
+      806171A2B540CF73CBBBA1C74F3FFDFCD3F46FBF13194B7C7C3F8A7CFFFDF77F
+      E319E390975370B7B1B10147D66FC5F96D66B6BF5F505070D258BC9CACBCBB83
+      83039C9C9C70ECD8B141393BBB809E3735DDC71E8F9F3D7BB6CA9D3B77505D55
+      8DEAEA77AAACACC4EDDBB7B169D3E6D02FBEF8622C9C879FFFB7D5C4363B213E
+      014345ECBFF9F67FBF139B31E3FB1FC662274F9E3C494444B47AFFFEFD8CAF43
+      45CF9126FFC533CE2128B8C4404C4C8C8993A7A7E730D173E3F15F7EF9E51792
+      926BDBC4C4C421BC522498C4C89B4A51616399B5B50D0E1EB4782528B858642C
+      7EDA57D3E68A8A8862E54AE1EBF4F7D4A953FFB64A628DBFF73116AAAAAA5053
+      5383E2E262484BCBD870E3E7CDE597A779BF74C9B204FA7BC50A21E55BB7CA50
+      585888CCCC4C46252525B87EFD3A160B2E511AC96FDFBEDD4F5E5E1E5252D290
+      975778AEA4A4DC6762624AE71B0F1F3E24F357C5F441E75072CD5AF791BCBABA
+      3AC3130E1B376E84ACACDC1B7D7D7D181818A0B1B1110F1E3C18F441728DD428
+      FE975F7E5DF2EBAFB3DCC544C51DE7CD9D27B9F27761EDBB77EFE27AFE75A4A7
+      A713653063A1FE4B48AC3E326DFAC269BCFFBD70DA78B9E0EAEA1E9B9A9AD655
+      5151019A93050505A4FECE61FE7C8195FF143D65347DE929539EF71C248E9BB5
+      B574CE595BD9DC080C0C648B4819B8F20979ADE793EF4C9BF677F16F79267090
+      BCFFFAAB998ACB0436E4384DFD56FC1F43AF95981AE163C5E13BAF64A0405B0D
+      631DECDE1EF43EEFC01FAD4D4CBB02372718AE5A308C8F505CCFC498EACA952B
+      CC7CDDBF7F1FC58537507835175997929071210E99EA4A20393A8A579D3F17E2
+      E2E24CCDD1F957505080879B2B92E262B1D7401FC242CB61616A081F9935283B
+      C91AC5E76AAA405555150D0D0DE8EDED85DAB66D386C6DC5F8DCF2A00A9BE4D7
+      E3566E2AF2483B6EFED371519EE65CD7F34EECD6D78398F04AB43EACC6D3DA4A
+      6C949541496612D32ED7DE76149FAEA684E5CB97E342423CF474B410191C0859
+      E9B530DAB513770BAF60D17C7E841F7765F80C8BFD5CEDF775BD4477472B5E34
+      3F46C7E31AB4DD2F4773E54D34DCBA8ABAC24C46B45DB2F19E513CA78FF789B2
+      717ADAA3F8F6CCCB684E4EC0A3D868D44486A222F0244A8E7B32B1A2E3A53E5F
+      D8AD8F182D0D44AA280DE3B9B1373DDD70CDC91ED9B61648DD6F328C0D51941B
+      C6D727C4E0C1990898A84A8F2B0E7B526ACD309EB255A1814C1B9A5BCB7EF93B
+      93B73D24673B1B1E3271F330D71B647D568B0FE3294B738AF2023F7C070DC5B5
+      C3F29FF641790E3B92A72C1D2FE5732EC4E06AC6651492980E15E539EC509E1E
+      F4FBC7881C3C13D1FD738EA21561D6FDB7028CBB0BBD75A5C76BFB34276C5273
+      7A105F63B28F506D9CBBFCDD683B9FEA687B54C5BAA33CFA08AE382A758FC5B6
+      66854E69BAEC975F7FF1386A133D5113E38A9AF31EB89FEC87AAF863280A3443
+      CAC1357D63F18DC9BEE60D69C168BA1A83C7599178981A84BB178EA32CE210CA
+      A21C917E6803E20C44C5B8B1F7D2FD665D4B727AFD382B02B52901B873C609B7
+      C26C7033601F4AC20F23DB5D0B31FAC2BEDC7D0E884FBBC07A75E09A3D9213EC
+      509D40EEA1715EB871D208795EBA28083447A2C93A84AB2E971FCAB664864C6A
+      4C3959D3901E0AAA53518E6CF32B8790E0A5CABE7EC2083743AC90E1A8823CD6
+      1E44698B21407191D0B0F15E64F13D4AF41A186F7624AACF7BE28C8F495F8C9B
+      F281C883D2ECF423EAC8F1DA850CB71D08DAB814DE6B7EE31BCA3F38EF22748F
+      C4B82E331C95E79C7137C90725A196F075D5E837CCB0C671A3B548D8AF80482D
+      0978ADE6AF7197983369285F196E2D5F1161CBCC0F8D555180194A231D501060
+      0E1B0F1D185CB68487E2D27E4F8979F12EE2B3A78C8C5D899F616239897365AC
+      276EF899E0EA317D64BB6920D74B8FC45B0787F4A5FA9DE405E7729BAF229F5D
+      A625C1E6B813EB819B24BE45A7AC99385FF33562C61C6B280D3FB945E6DC5892
+      C32645FE26B81561C7F85BC8C4591DF1263288D6114788F20A9C5CB730DF6BF5
+      6F53B8F1792E2A280DB74131C98B1C0F5D2498CAE0B4FA0ADF50E525F27E648E
+      7C6404F8BC56CF9B34569EA659AD438EAB06B25DB5106F2845F3426222F59868
+      2C313D669708A23584BA4395978A4DB49EDFA7CEFC73939EE645F291FC142235
+      254FEAD88CD4715F7988790A89FBE4F1D86757A3A73CCD0ACB6F4E0F46C3A593
+      787481851A520B34474A496EE53929A78CC7139BE64F7222D1529080C6BCB34C
+      6EDEBFE48F3B316EB81549EACB7CECFA277538F971A2574FF395337894168A6A
+      B2E6DC3E6D8F92E003A4FE8F20CB490DE77789988D679F8CD3F16E8C0B6A2EF8
+      30757CD3DF94C9CB82A083B8603ABA86DFAE797C21212141FEFEFEA1F4F775AF
+      9DD6649C3DB4FE6F865ABFADE1DDA48645694E0ED6707BDEE92964FD882F890F
+      E84D494941460659EF3D3C983EC83885E30CC5BBD31DD4483EEB21DD4D13FE8A
+      8B691DF20D59676B9EE444A0313B02C9C16EFD717171F43928D4D2D2F23FC9BE
+      F36B921FC22427BBCF9BCA225C430C9E12736B5CC4664F1A88951F1F5D679FE4
+      9F477D4E14EE2578E1E2519357575CD445091BAAA7A7574D9ED1BFF35DB74098
+      D8EC22B51FEF24FAEB603D3C8AF3107A10E7C1ACB3D5640DA16B079DDF88835B
+      FB8E1F3F4EF79DD8B2654B357946FF9AD8E41B19B3AAD387E4ABA2EC99B9E5AC
+      B3A5647EAFFB9BC175CF56B2FF7226FB02F9D0B1E6A9C4CFD8EC5698F5B07536
+      D385C48AAC3B192E3BE0B041B8CF66FD0AAEF55BEC6B3039DF43B3AF2CCA0145
+      A156CC3A4BEDD27536EBE84E9CD925499E1705CCC7B27DD545B52F9FA5CFD4FF
+      B513C6B864B50931066B11B15D84B3CEE693584F19B3FEADD7A5643BAB21D556
+      09D15ABFF7911A360BDC2028EF2BB34088CEEFC87576A4128CC4A7C4E80AA744
+      AAAFE80BD9BC64F2BFBBFE399AB17BB90BD10B22BCFD74E15CB3B0B0A0F38B81
+      3D9C14E83E963EC72E58B00073E6CCC14CA9DF30C7631374D28EC2F7F605E693
+      FE267D78503E202000656565B879F326AE5EBDCAE4FEC58B1711131383888808
+      FC60280CAD347768A63933CF529AA9CED0CBF0A27C0FE5C3C3C3993D437C7C3C
+      7D7742DFD1C0C7C70724F7616C6C8C4556B208AAB834EC798CFA41C742F9C8C8
+      C8CD44AF424343C99ED374A68A8A0AB691677F696969FABE086B1CD570AC3C11
+      ACCA4486DD99E131CC3ED5E9D3A73707070797DAD9D92524252531FBC5ECEC6C
+      646565C123C60F3B62ECE05B7111694DB76090EE85F95ECA83E3A70A0A0A9AC9
+      62B12ED37D2AE5C3C2C240CED17739CCE7E160776CF3318682A72EC48FA8BC14
+      3828633D747E48BD1BE7E5E5317B751A071ACFCECE4E3C7BF68CD94745454531
+      31B2B6B6A673643C727E899F29F7EEDD63F8D6D656D4941591FBA937EAE3DCD0
+      74B79CD913D1F9397FFE3C9DE751EB36D9DFB63E79F284D96BBF7AF50A91FE2C
+      349067AEB6CBFE684E3C869E9E1E862F2A2A82B2B272EB489EECED5B9F3E7D8A
+      FAFA7AF4F5113ED00735A9E1684C0F236BEF0986A7E3A0FE6969698DE2C97E3D
+      A5BDBD9DF1FDE5CB97A8AD28C269D24764C071DC2F2B444B4B0BCACBCB515A5A
+      0A4343C351FED7D5D51953F6C58B174CCCBABABAD0DFD7C7F842FBA5766B6B6B
+      919A9A0A5B5BDB51F16B6A6A9A4994F0FCF97386EDE8E860E63E2D2D0D8F1E3D
+      62C645FB20F7868413274ECCE45663247E42C4CF04CA521F685FD436E9976149
+      5D249079161AF79ED9D232B3ADADCD987CA6907D682B19572BD943A790F8D2FC
+      98F931B54F7C36263958191818D84FEE6BFD1361494D1813AE8BE60F1D1719FB
+      84F61C84AD7CFCF8319A9B9B99D8D3FBC944783F3FBF7E6A9BCE3BA9AF5C7A8E
+      BE5323F756BA4EBC772CC45F36CDE96BD7AED1B5E5CAD1A347F362636399F762
+      E4BE342EEFEBEB2B4DFC7D43DF01D1F73F745DA3F9909B9BCBAC738E8E8E95DC
+      B8FAF3EEAC9A689752E26F3FAD595A33F4333F3F1FB4C673727270E4C8912E7B
+      7BFB51795877D695D54CEAAEE9921FAACF7A30EFCC929393E1EAEAFA86FA4B6C
+      F693E7824AB24E71619D594D294178569A818E92343C26F7F4DB8156F4DD7F8F
+      9393D33FC71B6B5DB42361FD09978E969C683CC98CC0D38224D446DAE1B6ABFA
+      8DF1D8DAD30EACA68B7EE8284E434BF669345E3C81E6D460B4E5C7E161A805EE
+      386C3837367B88D5449E373A8A2EA3258BB0E47B534A205AAF9EC7C3908328B7
+      53881DCFF603D27F7B510AE36F43228BC42D00AD79B178186486F24372B1EFCB
+      8F7BE479A39D8CB3F97220E8185AF36208BB0F653632F11F929F77BD7716D118
+      B5E6C6A035E70CEE93BD48999554FC4472FC8EB3F21D122362733DCA2C2427C4
+      6216F9F8A44FFAA4BFA47EC2277DD227FD55B5972C039FF4499FF4D7D49FF5BE
+      F0CF927CB8B2F7BAE08D873E86950B53F2D64E328446FC2E4878CB584C84953D
+      B5C55BEBC21ED89779C1B2C011CA519A587144CCEA43D8F5A19BBD35130C6057
+      7A14874ADDB1357A07841CC5B1C4F6775E4E1B8D7483D56A297A3B47B1219BBC
+      A9BF874ADC605BE2CAD85D6E2FC25E6C23F48E4D331056BBA4DB649863812DB1
+      1A469CF3244EDEDBE3F46153EC0AEB6267289DD6C0323B61B6A0F58A41767BEA
+      AEB5DB92751B2C6E38E170C9516C885265933819C9046D70573BAF07EB222758
+      DC74C4E648752C3DBC92BDC86A39EF50FF542FEE9CA292A08DDD99E63872FB18
+      2C6F3842F38201B42F1AE2E00D071CBC698F4D116A5872E8F7D78B2C97F1728B
+      CFA6B36A53895D68271B3263B42A728679A11DCC6FD86163B82A8DD39B85164B
+      79C78D71C8A6A932011BB02D5607070AED6156608B0DA75440E2F466C1C1F159
+      8E56B164A68A7B4A6133F157215419244E6F040E2CE19D489E90799DBADC4104
+      244EFD02E68B3FFF983C25719A3A7FBFE0E7FF1FEB4F5BB377EA58D70E98E107
+      22FEB1AE6B69F4F2AB6FEB315251EA12E5C65A1E002CCCDFC0D4E8F5A83E766C
+      EFE5D7D9D10B03FD57D8BCE1E51905B9177347B276B6546F6066F21A7B76F50F
+      F6A1A9DEC34F6CC3C8B01FB6D600FDBE4EAAD3487255C77FD0EBE6FBC06B66F2
+      E6B58DE51BB83903D6160C0FED1DAFF835D47AF8896DECDDD3071B4B6087460F
+      64D676B2D748747C36D43F93BDAF79F7EE66B30F98BD86933D60BE8F0D1DAD5E
+      10DB3034E88315596DE87769C967ECD5121D5C736A975E3FAFAEF62BB631F1F3
+      30198BAD15F585C4848C6DBB5A0FA4D63C63AF12EF18371F89AFBCEAAADDAF6D
+      08B77D1BB06D2BF1C50C58BBFAD96B09B1F6F7E6B29A4A379D23320F808A12A0
+      BC19303506A4D7764258A88D7F3C76DBD66E7E35D56EE8E9F4C1CC14D84738E3
+      BDE43EB387F4B3A50762221D105CF8846B1FAACA5DFCDB54BAA1AB4D58134075
+      6B37489CD8A2C24F5F2BCAFD017D3D4051BE0BCB96B461DEECC6617D907CE227
+      B6B153AB0F26C6D4EF6E9038B145573EE5155ADEC6BB54B0852D25F902DA5AC0
+      3AE93FB0607E0B7EFEB17EB00F924F125B95BAC87CF761EB966E9038B1457E7F
+      3A18AB85F39B797F9BD7C496107B0ED975DD58B4A0153FCC7C3CECEFF4249F24
+      14645F405CB4FD3589D3A838CFFEB591F7979F1BD8DC588EC444DA2556AE681B
+      738E7EFAA19E97EF1F8F25FE9DF55C72F91CB8E943FF5D216D3BF2A0E776492D
+      C2FF857FD9D6F4417D70F8DAB30E8C86DAE76822F6FB7B7BD0FDFC199EB736A3
+      BDA1F683798EFDA17A74D69DABB8F123EDB63CAC66DA8E3C9E9073D70CDEF944
+      F9575D2FC7B43FF2A0E7686C6336CF0187FFA3A30DCF9AEBD156771FCDF7EEA0
+      B1BA0C75B70B07F9720765461C9EB21C517E285B7FA718B5A5F9B877237B94FD
+      D7BD5DE87BDE8ADED65A74D7DF81F79AFF61784BD5B55C35D2FE50FDF1A088E1
+      C79B1B0E3FD22E655F54E67D10CFEEEAE46ABFF356DA07F1AFDA1BD1D35483AE
+      4765785953C0D8A56C4761C207F143D9E7E55978569C8CF6EBB18C3E84A76DC6
+      135D037EFCF147E6DFCD4E4494E1B0F46F6BF46FA31311FD1B357191E98BFE56
+      5454FC60DBF46FFAA74E9D1AC6D34F8891258DE7FDA2EC9FC2F37CE23F96E7CC
+      E94444799A7F349726CA527B94A739CCE947535373DCBCE3D1E021093FD096C3
+      0EEEC13434187E2CD1FCE6F00B172E1CB5EFE6C482B6E5FC5F2D8E18DBE4FA50
+      8D64393E4D4494FD170306628D
     }
   end
   object mnLicense: TPopupMenu
@@ -4374,5 +4438,10 @@ object Form1: TForm1
     object mnSaveGUItext: TMenuItem
       Action = acSaveGUItext
     end
+  end
+  object DateTimeIntervalChartSource1: TDateTimeIntervalChartSource
+    DateTimeFormat = 'nn:ss'
+    Left = 624
+    Top = 530
   end
 end

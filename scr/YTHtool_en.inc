@@ -71,6 +71,11 @@ resourcestring                                     {english}
   hntPanControl='Pan control';
   capTelemetry='Send test telemetry';
   hntTelemetry='Test telemetry messages over WiFi if received in Sensor files of flight logs.';
+  capAddValue='Additonal data chart';
+  hntAddValue='Select what you want to see in the chart';
+  capScreenshot='Screenshot';
+  hntScreenshot='Take screenshot for documentation or discussion in forum';
+  titScreenshot='Save screenshot as picture...';
 
   rsSaved=' saved';
   rsDisconnected='Disconnected';

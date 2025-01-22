@@ -58,10 +58,10 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  lclintf, Buttons, ActnList, Menus, Process, XMLPropStorage, ComCtrls, Grids,
+  lclintf, lcltype, Buttons, ActnList, Menus, Process, XMLPropStorage, ComCtrls, Grids,
   ValEdit, Spin, TAGraph, TATypes, TASeries, TAChartUtils, TAGeometry,
-  TARadialSeries, TASources, synaser, MKnob, clipbrd,
-  mav_def, mav_msg, msg57, Types;
+  TARadialSeries, TASources, TAIntervalSources, TATools, synaser, MKnob,
+  clipbrd, mav_def, mav_msg, msg57, Types;
 
 type
 
@@ -75,7 +75,9 @@ type
     acSaveGUItext: TAction;
     acCopySerial: TAction;
     acEnableTesting: TAction;
+    acScreenshot: TAction;
     ActionList1: TActionList;
+    btnScreenshot: TBitBtn;
     btnEnableNFZ: TButton;
     btnGimbalCali: TButton;
     btnSaveMsg: TBitBtn;
@@ -105,6 +107,9 @@ type
     cbTelemetry: TCheckBox;
     cbLimitMsg: TCheckBox;
     cbHighRPM: TCheckBox;
+    chAddValue: TChart;
+    AddValueLineSeries1: TLineSeries;
+    DateTimeIntervalChartSource1: TDateTimeIntervalChartSource;
     gbMag: TGroupBox;
     gbOrientation: TGroupBox;
     gbBaro: TGroupBox;
@@ -117,6 +122,7 @@ type
     mnEnableTesting: TMenuItem;
     mnCopySerial: TMenuItem;
     mnSaveGUItext: TMenuItem;
+    rgAddValue: TRadioGroup;
     Separator1: TMenuItem;
     picGPS: TImage;
     picGLONASS: TImage;
@@ -227,6 +233,7 @@ type
     procedure acEnableTestingExecute(Sender: TObject);
     procedure acSaveGUItextExecute(Sender: TObject);
     procedure acScanPortsExecute(Sender: TObject);
+    procedure acScreenshotExecute(Sender: TObject);
     procedure btnAccCaliClick(Sender: TObject);
     procedure btnAccEraseClick(Sender: TObject);
     procedure btnCenterClick(Sender: TObject);
@@ -259,6 +266,7 @@ type
     procedure knPanControlChange(Sender: TObject; AValue: Longint);
     procedure picMotorsMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure rgAddValueClick(Sender: TObject);
     procedure rgYGC_TypeClick(Sender: TObject);
     procedure SatPolarAfterDrawBackWall(ASender: TChart; ACanvas: TCanvas;
       const ARect: TRect);
@@ -268,6 +276,8 @@ type
     procedure timerSensorsTimer(Sender: TObject);
     procedure timerTelemetryTimer(Sender: TObject);
     procedure timerYGCcommandLongTimer(Sender: TObject);
+    procedure vleAccPrepareCanvas(Sender: TObject; aCol, aRow: Integer;
+      aState: TGridDrawState);
 
   private
     procedure StopAllTimer;
@@ -304,6 +314,8 @@ type
     procedure PrepareSatPolarDiagram;
     procedure DrawPolarAxes(AChart: TChart; AMax, ADelta: Double; MeasurementUnit: string);
     procedure GUIsetCaptionsAndHints;
+    procedure TakeScreenshot(filename: string);
+    procedure AddToChart(const Time: TDateTime; value: single);
   public
     procedure ReadMessage_FE(var msg: TMAVmessage);
     procedure ReadGimbalPosition(msg: TMAVmessage);
@@ -336,13 +348,14 @@ var
   UARTConnected, SerialNumberFound: boolean;
   SensorStream: TMemoryStream;
 
-  boottime: UInt64;
+  starttime: UInt64;
+  boottime: TDateTime;
   SequNumberTransmit, SequNumberReceived: byte;
   MessagesSent, MessagesReceived: integer;
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.4 2024-01-19';
+  AppVersion='V1.5 2024-01-22';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
@@ -396,6 +409,7 @@ begin
   PreparePolarAxes(SatPolar, 90);
   BarSatSNR.Clear;
   SatPolarSeries.Clear;
+  AddValueLineSeries1.Clear;
 
   shapeUsed.Pen.Color:=clSatUsed;
   shapeNotUsed.Pen.Color:=clSatVisible;
@@ -416,6 +430,8 @@ begin
   acSaveGUItext.Hint:=hntSaveGUItext;
   acCopySerial.Caption:=capCopySerial;
   acCopySerial.Hint:=hntCopySerial;
+  acScreenshot.Caption:=capScreenshot;
+  acScreenshot.Hint:=hntScreenshot;
 
   btnGimbalCali.Caption:=capGimbalCali;
   btnGimbalCali.Hint:=hntGimbalCali;
@@ -475,6 +491,9 @@ begin
   cbSensor.Hint:=hntSensor;
   cbTelemetry.Caption:=capTelemetry;
   cbTelemetry.Hint:=hntTelemetry;
+  chAddValue.Hint:=capAddValue;
+  rgAddValue.Caption:=capAddValue;
+  rgAddValue.Hint:=hntAddValue;
 
   tsGUI.Caption:=captsGUI;
   tsYGC.Caption:=captsYGC;
@@ -738,6 +757,22 @@ begin
     gridVarious.Cells[1, i];
 end;
 
+function GetContrastTextColor(const BackColor: TColor): TColor;
+begin                                              {Textfaebe abh. vom Hintergrund}
+  if (Red(BackColor) * 0.25+
+      Green(BackColor) * 0.625+
+      Blue(BackColor) * 0.125) > 90 then
+    result := clBlack
+  else
+    result := clWhite;
+end;
+
+procedure CellColorSetting(aGrid: TValueListEditor; Farbe: TColor); {Zellen einfärben}
+begin
+  aGrid.Canvas.Brush.Color:=Farbe;
+  aGrid.Canvas.Font.Color:=GetContrastTextColor(Farbe);
+end;
+
 function InvertPanControlPosition(pos: uint16): uint16;
 begin
   result:=4096-pos;
@@ -823,7 +858,8 @@ begin
   MessagesSent:=0;
   MessagesReceived:=0;
   SerialNumberFound:=false;
-  Boottime:=GetTickCount64;
+  starttime:=GetTickCount64;
+  boottime:=0;
 end;
 
 procedure TForm1.CreateFCControl(var msg: TMavMessage; SequenceNumber: byte; const command: uint16=$FFFF);
@@ -1183,7 +1219,7 @@ var
   i: integer;
 
 begin
-  s:=FormatFloat(floatformat3, (GetTickCount64-boottime)/1000);
+  s:=FormatFloat(floatformat3, (GetTickCount64-starttime)/1000);
   for i:=0 to msg.msglength+LengthFixPart+1 do begin
     s:=s+';'+IntToHex(msg.msgbytes[i], 2);
   end;
@@ -1226,6 +1262,10 @@ begin
   vlePosition.Cells[1, 1]:=FormatCoordinates(sats.lat);
   vlePosition.Cells[1, 2]:=FormatCoordinates(sats.lon);
   vlePosition.Cells[1, 3]:=FormatAltitude(sats.altMSL);
+
+  if rgAddValue.ItemIndex=6 then
+    AddToChart(boottime, sats.altMSL/1000);
+
   vlePosition.Cells[1, 6]:=IntToStr(sats.sats_inuse);
   vlePosition.Cells[1, 7]:=FormatDOP(sats.eph);
   vlePosition.Cells[1, 8]:=FormatDOP(sats.epv);
@@ -1271,6 +1311,9 @@ begin
   vlePosition.Cells[1, 4]:=FormatAltitude(sats.alt_rel);
   vleBaro.Cells[1, 3]:=FormatAltitude(sats.alt_rel);
 
+  if rgAddValue.ItemIndex=7 then
+    AddToChart(boottime, sats.alt_rel/1000);
+
   vleVelocity.Cells[1, 2]:=FormatXYZSpeed(sats.vx);
   vleVelocity.Cells[1, 3]:=FormatXYZSpeed(sats.vy);
   vleVelocity.Cells[1, 4]:=FormatXYZSpeed(sats.vz);
@@ -1286,8 +1329,8 @@ begin
   vleAcc.Cells[1, 3]:=IntToStr(data.AccZ);
   Magnitude:=Value3D(data.AccX, data.AccY, data.AccZ);
   vleAcc.Cells[1, 4]:=FormatFloat(floatformat2, Magnitude);
-  if Magnitude<AccMin then
-    gbAcc.Color:=clSensorMiss;
+  if rgAddValue.ItemIndex=5 then
+    AddToChart(boottime, Magnitude);
 
   vleGyro.Cells[1, 1]:=IntToStr(data.GyroX);
   vleGyro.Cells[1, 2]:=IntToStr(data.GyroY);
@@ -1296,6 +1339,17 @@ begin
   vleMag.Cells[1, 1]:=IntToStr(data.MagX);
   vleMag.Cells[1, 2]:=IntToStr(data.MagY);
   vleMag.Cells[1, 3]:=IntToStr(data.MagZ);
+end;
+
+procedure TForm1.vleAccPrepareCanvas(Sender: TObject; aCol, aRow: Integer;
+  aState: TGridDrawState);
+begin
+  if aCol=1 then begin
+    if (aRow=4) and (vleAcc.Cells[1, 4]<>'') and
+       (StrToFloat(vleAcc.Cells[1, 4])<AccMin)  then
+      CellColorSetting(vleAcc,clSensorMiss);
+
+  end;
 end;
 
 procedure TForm1.FillSENSOR_OFFSETS(const data: THWstatusData);
@@ -1318,6 +1372,11 @@ begin
   vleOrientation.Cells[1, 1]:=FormatFloat(floatformat1, data.roll);
   vleOrientation.Cells[1, 2]:=FormatFloat(floatformat1, data.pitch);
   vleOrientation.Cells[1, 3]:=FormatFloat(floatformat1, data.yaw);
+  case rgAddValue.ItemIndex of
+    2: AddToChart(boottime, data.roll);
+    3: AddToChart(boottime, data.pitch);
+    4: AddToChart(boottime, data.yaw);
+  end;
 end;
 
 procedure TForm1.FillEKF_STATUS_REPORT(data: TAttitudeData);
@@ -1328,6 +1387,8 @@ begin
 end;
 
 { YTH OK w/o RS: 00 A0 FC 2F      with RS: 02 A0 FC 6F
+
+Flags from low to high:
 
 1    MAV_SYS_STATUS_SENSOR_3D_GYRO=1                     0x01 3D gyro
 1    MAV_SYS_STATUS_SENSOR_3D_ACCEL=2                    0x02 3D accelerometer
@@ -1355,7 +1416,7 @@ end;
 0    MAV_SYS_STATUS_SENSOR_3D_MAG2=524288                0x80000 2nd 3D magnetometer
 
 0    MAV_SYS_STATUS_GEOFENCE=1048576                     0x100000 geofence
-1    MAV_SYS_STATUS_AHRS=2097152                         0x200000 AHRS subsystem health
+1    MAV_SYS_STATUS_AHRS=2097152                         0x200000 AHRS subsystem health (Attitude Heading Reference System)
 0    MAV_SYS_STATUS_TERRAIN=4194304                      0x400000 Terrain subsystem health
 1    MAV_SYS_STATUS_REVERSE_MOTOR=8388608                0x800000 Motors are reversed   Sonar !
 
@@ -1470,7 +1531,8 @@ begin
   btnTurnAll.Enabled:=false;
   BarSatSNR.Clear;
   SatPolarSeries.Clear;
-  ResetSensorsStatus;     {notwendig?}
+  ResetSensorsStatus;
+  AddValueLineSeries1.Clear;
   lblSysTime.Caption:=rsTimeUTC;
   GUItext.Text:='';
   acCopySerial.Enabled:=false;
@@ -1481,6 +1543,17 @@ end;
 function FormatBootTime(const data: TGPSdata): string;
 begin
   result:=FormatDateTime(timezzz, data.boottime);
+end;
+
+procedure TForm1.AddToChart(const Time: TDateTime; value: single);
+begin
+  chAddValue.BeginUpdateBounds;
+  if time>0 then begin
+    if AddValueLineSeries1.Count>1000 then
+      AddValueLineSeries1.Delete(0);
+    AddValueLineSeries1.AddXY(time, value);
+  end;
+  chAddValue.EndUpdateBounds;
 end;
 
 procedure TForm1.ReadGUIMessages(msg: TMAVmessage);
@@ -1561,6 +1634,8 @@ begin
       SCALED_PRESSURE(msg, LengthFixPartBC, Sensors);
       vleBaro.Cells[1, 1]:=FormatFloat(floatformat2, Sensors.pressure_abs)+'hPa';
       vleBaro.Cells[1, 2]:=FormatFloat(floatformat2, Sensors.baro_temp/100)+'°C';
+      if rgAddvalue.ItemIndex=1 then
+        AddToChart(boottime, Sensors.baro_temp/100);
     end;
     30: begin
       ATTITUDE(msg, LengthFixPartBC, DronePos);
@@ -1569,6 +1644,7 @@ begin
 
     33: begin
       GLOBAL_POSITION_INT(msg, LengthFixPartBC, GUI_GPSdata);
+      boottime:=GUI_GPSdata.boottime;
       lblFCtime.Caption:=FormatBootTime(GUI_GPSdata);
       lblFCtimeGPS.Caption:=FormatBootTime(GUI_GPSdata);
       FillGUIposition33(GUI_GPSdata);
@@ -1596,13 +1672,17 @@ begin
       lblOK.Caption:='OK';
 
     150: begin
-      SENSOR_OFFSETS(msg, LengthFixPartBC, Sensors);
-      FillSENSOR_OFFSETS(sensors);
+      if vleGyro.Cells[1, 4]='' then begin
+        SENSOR_OFFSETS(msg, LengthFixPartBC, Sensors);
+        FillSENSOR_OFFSETS(sensors);
+      end;
     end;
 
     172: begin
       DATA96(msg, LengthFixPartBC, Values24);
       vleGyro.Cells[1, 7]:=FormatFloat(floatformat2, Values24.value[0])+'°C';
+      if rgAddValue.ItemIndex=0 then
+        AddToChart(boottime, Values24.value[0]);
     end;
 
     193: begin
@@ -1790,6 +1870,7 @@ end;
 
 procedure TForm1.acSaveGUItextExecute(Sender: TObject);
 begin
+  SaveDialog1.Title:=hntSaveGUItext;
   SaveDialog1.FilterIndex:=2;
   SaveDialog1.FileName:='TextMessages_'+FormatDateTime('yyyymmdd_hhnnss', now)+'.txt';
   if SaveDialog1.Execute then begin
@@ -1850,6 +1931,43 @@ begin
     list.Free;
   end;
 {$ENDIF}
+end;
+
+procedure TForm1.TakeScreenshot(filename: string);
+var
+    bild: TPortableNetworkGraphic;
+    bmp: TBitMap;
+    {$IFDEF WINDOWS}
+      ScreenDC: HDC;
+    {$ENDIF}
+
+begin
+  bild:=TPortableNetworkGraphic.Create;             {create PNG-picture}
+  try
+  {$IFDEF LINUX}
+    bmp:=GetFormImage;                             {No more working with Windows}
+    bild.Assign(bmp);
+  {$ELSE}
+    ScreenDC := GetDC(Handle);
+    bild.LoadFromDevice(ScreenDC);                  {Get screenshot xyz.Handle}
+    ReleaseDC(0, ScreenDC);
+  {$ENDIF}
+    bild.SaveToFile(filename);
+  finally
+    bild.Free;
+    {$IFDEF LINUX}
+      bmp.Free;
+    {$ENDIF}
+  end;
+end;
+
+procedure TForm1.acScreenshotExecute(Sender: TObject);
+begin
+  SaveDialog1.Title:=titScreenshot;
+  SaveDialog1.FilterIndex:=3;
+  SaveDialog1.FileName:=capScreenshot+FormatDateTime('yyyymmdd_hhnnss', now)+'.png';
+  if SaveDialog1.Execute then
+    TakeScreenshot(SaveDialog1.FileName);
 end;
 
 procedure TForm1.btnCenterClick(Sender: TObject);
@@ -2084,6 +2202,11 @@ begin
     CreateGUI_COMMAND_LONG(msg, motorcommand);
     SendUARTMessage(msg, LengthFixPartBC);
   end;
+end;
+
+procedure TForm1.rgAddValueClick(Sender: TObject);
+begin
+  AddValueLineSeries1.Clear;
 end;
 
 procedure TForm1.rgYGC_TypeClick(Sender: TObject);

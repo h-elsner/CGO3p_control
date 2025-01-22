@@ -24,7 +24,7 @@ resourcestring                                     {deutsch}
   hntDisConnect='Disonnect UART from USB port';
   hntSpeed='Select baud rate. Default 115200 shoult work for drone and camera.';
   capClose='Close';
-  capSaveGUItext='&Text speichern';
+  capSaveGUItext='&Save text';
   hntSaveGUItext='Save the text in the messages-window to a text file.';
   capCopySerial='Copy Vehicle ID';
   hntCopySerial='Copy Vehicle ID (serial number) to clipboard.';
@@ -35,12 +35,12 @@ resourcestring                                     {deutsch}
   capSensorInfo='Sensor information';
   capGPSinfo='GNSS information';
   capSettings='System / Settings';
-  msgPropellerRemoved='Ich habe alle Propeller abmontiert.';
-  capEnableTesting='Testen erlauben';
-  hntEnableTesting='Motoren nur ohne Propeller testen!';
-  capLimitMsg='Zeilen auf 600 begrenzen';
-  capHighRPM='Hohe RPM';
-  hntHighRPM='Propellerdrehzahl auf 100 hochgesetzt. Vorsichtig damit umgehen!';
+  msgPropellerRemoved='I have removed all propellers.';
+  capEnableTesting='&Enable testing';
+  hntEnableTesting='Test motors only without propellers!';
+  capLimitMsg='Limit text messages to 600';
+  capHighRPM='High RPM';
+  hntHighRPM='Set propeller speed to 100. Handle with care';
   hntGeoFence='Maximum distance from home point in Smart Mode.';
   hntHeightLimit='Maximum elevation above home point in Smart and Angle mode.';
   capGimbalCali='Gimbal calibration';
@@ -71,15 +71,20 @@ resourcestring                                     {deutsch}
   hntPanControl='Pan control';
   capTelemetry='Send test telemetry';
   hntTelemetry='Test telemetry messages over WiFi if received in Sensor files of flight logs.';
+  capAddValue='Additonal data chart';
+  hntAddValue='Select what you want to see in the chart';
+  capScreenshot='Screenshot';
+  hntScreenshot='Take screenshot for documentation or discussion in forum';
+  titScreenshot='Screenshot als Bild speichern...';
 
-  rsSaved=' saved';
-  rsDisconnected='Disconnected';
-  rsConnected='Connected';
+  rsSaved=' gespeichert';
+  rsDisconnected='Getrennt';
+  rsConnected='Verbunden';
   rsEnabled='Enabled';
-  rsAvailable='Available';
-  rsNotMounted='Not mounted';
-  rsInUse='satellites in use';
-  rsVisible='satellites visible';
+  rsAvailable='verfügbar';
+  rsNotMounted='freigegeben';
+  rsInUse='Satelliten in Benutzung';
+  rsVisible='Satelliten sichtbare';
   rsConfirm='Please confirm';
   rsTime='Time';
   rsTimeUTC='System time UTC';
@@ -91,5 +96,4 @@ resourcestring                                     {deutsch}
 
   errSensorsNotHealthy='Sensors not healthy!';
   errNoUSBport='No USB port available';
-
 
