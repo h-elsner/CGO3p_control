@@ -26,6 +26,8 @@ resourcestring                                     {english}
   capClose='Close';
   capSaveGUItext='&Save text';
   hntSaveGUItext='Save the text in the messages-window to a text file.';
+  capDeleteGUItext='&Delete text';
+  hntDeleteGUItext='Empty the text message list.';
   capCopySerial='Copy Vehicle ID';
   hntCopySerial='Copy Vehicle ID (serial number) to clipboard.';
 
