@@ -24,8 +24,6 @@ resourcestring                                     {english}
   hntDisConnect='Disonnect UART from USB port';
   hntSpeed='Select baud rate. Default 115200 shoult work for drone and camera.';
   capClose='Close';
-  capSaveGUItext='&Save text';
-  hntSaveGUItext='Save the text in the messages-window to a text file.';
   capDeleteGUItext='&Delete text';
   hntDeleteGUItext='Empty the text message list.';
   capCopySerial='Copy Vehicle ID';

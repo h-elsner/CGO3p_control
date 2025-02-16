@@ -76,7 +76,9 @@ type
     acCopySerial: TAction;
     acEnableTesting: TAction;
     acScreenshot: TAction;
+    acDeleteText: TAction;
     ActionList1: TActionList;
+    btnDeleteText: TBitBtn;
     btnScreenshot: TBitBtn;
     btnEnableNFZ: TButton;
     btnGimbalCali: TButton;
@@ -229,6 +231,7 @@ type
     procedure acCloseExecute(Sender: TObject);
     procedure acConnectExecute(Sender: TObject);
     procedure acCopySerialExecute(Sender: TObject);
+    procedure acDeleteTextExecute(Sender: TObject);
     procedure acDisconnectExecute(Sender: TObject);
     procedure acEnableTestingExecute(Sender: TObject);
     procedure acSaveGUItextExecute(Sender: TObject);
@@ -264,6 +267,7 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure Image1Click(Sender: TObject);
     procedure knPanControlChange(Sender: TObject; AValue: Longint);
+    procedure pcMainChange(Sender: TObject);
     procedure picMotorsMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure rgAddValueClick(Sender: TObject);
@@ -340,7 +344,7 @@ type
     procedure TEXT_MESSAGE(msg: TMAVmessage);
   end;
 
-  {$I YTHtool_en.inc}
+  {$I YTHtool_de.inc}
 
 var
   Form1: TForm1;
@@ -355,7 +359,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.5 2024-01-22';
+  AppVersion='V1.5 2024-02-16';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
@@ -381,7 +385,7 @@ const
 {$IFDEF WINDOWS}
   default_port='COM6';
 {$ELSE}                                                {UNIX like OS}
-  default_port='/dev/ttyUSB0';
+  default_port='/dev/ttyACM0';
 {$ENDIF}
 
 
@@ -426,12 +430,14 @@ begin
   acDisConnect.Caption:=capDisConnect;
   acDisConnect.Hint:=hntDisConnect;
   acClose.Caption:=capClose;
-  acSaveGUItext.Caption:=capSaveGUItext;
-  acSaveGUItext.Hint:=hntSaveGUItext;
+  acSaveGUItext.Caption:=capSaveProt;
+  acSaveGUItext.Hint:=hntSaveProt;
   acCopySerial.Caption:=capCopySerial;
   acCopySerial.Hint:=hntCopySerial;
   acScreenshot.Caption:=capScreenshot;
   acScreenshot.Hint:=hntScreenshot;
+  acDeleteText.Caption:=capDeleteGUItext;
+  acDeleteText.Hint:=hntDeleteGUItext;
 
   btnGimbalCali.Caption:=capGimbalCali;
   btnGimbalCali.Hint:=hntGimbalCali;
@@ -780,6 +786,7 @@ end;
 
 function TForm1.TiltModeToInt: uint16;
 begin
+  result:=2048;
   case rgTiltMode.ItemIndex of
     0: result:=2184;
     1: result:=3412;
@@ -788,6 +795,7 @@ end;
 
 function TForm1.PanModeToInt: uint16;
 begin
+  result:=2048;
   case rgPanMode.ItemIndex of
     0: result:=683;
     1: result:=1502;
@@ -832,6 +840,7 @@ begin
   picGLONASS.ImageIndex:=11;
   picSBAS.ImageIndex:=11;
   lblOtherSats.Caption:='';
+  vleSysStatus.Cells[1, 9]:='';
 end;
 
 procedure WriteCSVRawHeader(var list: TStringList);
@@ -998,6 +1007,11 @@ procedure TForm1.acCopySerialExecute(Sender: TObject);
 begin
   if vleSystem.Cells[1, 2]<>'' then
     Clipboard.AsText:=vleSystem.Cells[1, 2];
+end;
+
+procedure TForm1.acDeleteTextExecute(Sender: TObject);
+begin
+  GUItext.Text:='';
 end;
 
 procedure TForm1.acCloseExecute(Sender: TObject);
@@ -1379,6 +1393,24 @@ begin
   end;
 end;
 
+{ EKF status
+        Value	Name	Description
+ 1       1	ESTIMATOR_ATTITUDE	        True if the attitude estimate is good
+ 0       2	ESTIMATOR_VELOCITY_HORIZ	True if the horizontal velocity estimate is good
+ 1       4	ESTIMATOR_VELOCITY_VERT	        True if the vertical velocity estimate is good
+ 0       8	ESTIMATOR_POS_HORIZ_REL         True if the horizontal position (relative) estimate is good
+
+ 0       16	ESTIMATOR_POS_HORIZ_ABS	        True if the horizontal position (absolute) estimate is good
+ 1       32	ESTIMATOR_POS_VERT_ABS	        True if the vertical position (absolute) estimate is good
+ 0       64	ESTIMATOR_POS_VERT_AGL	        True if the vertical position (above ground) estimate is good
+ 1       128	ESTIMATOR_CONST_POS_MODE	True if the EKF is in a constant position mode and is not using external measurements (eg GPS or optical flow)
+
+ 1       256	ESTIMATOR_PRED_POS_HORIZ_REL	True if the EKF has sufficient data to enter a mode that will provide a (relative) position estimate
+ 1       512	ESTIMATOR_PRED_POS_HORIZ_ABS	True if the EKF has sufficient data to enter a mode that will provide a (absolute) position estimate
+ 0       1024	ESTIMATOR_GPS_GLITCH	        True if the EKF has detected a GPS glitch
+ 0       2048	ESTIMATOR_ACCEL_ERROR	        True if the EKF has detected bad accelerometer data
+}
+
 procedure TForm1.FillEKF_STATUS_REPORT(data: TAttitudeData);
 begin
   vleVelocity.Cells[1, 5]:=FormatFloat(floatformat3, data.velocity_variance);
@@ -1556,6 +1588,7 @@ begin
   chAddValue.EndUpdateBounds;
 end;
 
+{https://mavlink.io/en/messages/common.html}
 procedure TForm1.ReadGUIMessages(msg: TMAVmessage);
 var
   GUI_GPSdata: TGPSdata;
@@ -1565,29 +1598,12 @@ var
 
   s, dt: string;
   value: single;
-(*
-  procedure DATA96;     {test only}
-  var
-    w: single;
-    i: byte;
-    s: string;
-
-  begin
-    s:=lblFCtime.Caption;
-    for i:=0 to 23 do begin
-      w:=MavGetFloat(msg, i*4+8);
-      s:=s+';'+FormatFloat('0,000', w);
-    end;
-    GUItext.Lines.Add(s);
-  end;
-*)
 
 begin
   GUI_GPSdata:=Default(TGPSdata);
   Sensors:=Default(THWstatusData);
   DronePos:=Default(TAttitudeData);
   Values24:=Default(TData96);
-  BeginFormUpdate;
 
   case msg.msgid of
     0: begin
@@ -1605,7 +1621,6 @@ begin
 
     22: begin
       s:=PARAM_VALUE(msg, LengthFixPartBC, value);
-//      GUItext.Lines.Add(s+' = '+FormatFloat('0', value)); {Option: Let's look what else may come}
       if s=pGeoFence then
         lblGeoFenceVal.Caption:=FormatFloat('0', value)+'m'
       else
@@ -1690,9 +1705,8 @@ begin
       FillEKF_STATUS_REPORT(DronePos);
     end;
 
-    253: GUItext.Lines.Add(STATUSTEXT(msg, LengthFixPartBC, ' '));
+    253: GUItext.Lines.Add(FormatDateTime(timezzz, boottime)+tab1+STATUSTEXT(msg, LengthFixPartBC, ' '));
   end;
-  EndFormUpdate;
 end;
 
 procedure TForm1.ActAsGUI(var msg: TMAVmessage; list: TStringList);
@@ -1726,9 +1740,6 @@ begin
       ReadMessage_FE(msg);
       if msg.valid then begin
         ReadYGCcameraMessages(msg);
-
-//        ReadGimbalPosition(msg);
-//        FillCharts;
         if cbRecord.Checked then
           RecordMessage(msg, list, LengthFixPartFE);
         if cbSensor.Checked then
@@ -1870,7 +1881,7 @@ end;
 
 procedure TForm1.acSaveGUItextExecute(Sender: TObject);
 begin
-  SaveDialog1.Title:=hntSaveGUItext;
+  SaveDialog1.Title:=hntSaveProt;
   SaveDialog1.FilterIndex:=2;
   SaveDialog1.FileName:='TextMessages_'+FormatDateTime('yyyymmdd_hhnnss', now)+'.txt';
   if SaveDialog1.Execute then begin
@@ -1901,7 +1912,7 @@ begin
       GUItext.Lines.Add(cbPort.Items[i]);              {Make for Win same as for LINUX}
       GIMBALtext.Lines.Add(cbPort.Items[i]);
     end;
-    StatusBar1.Panels[2].Text:=cbPort.Items[i];
+    StatusBar1.Panels[2].Text:=cbPort.Items[cbPort.Items.Count-1];
   end else
     StatusBar1.Panels[2].Text:=errNoUSBport;
 
@@ -2118,12 +2129,14 @@ end;
 
 procedure TForm1.FormActivate(Sender: TObject);
 begin
-  StopAllTimer;
-  knPanControl.Position:=2048;
-  if rgYGC_Type.ItemIndex=4 then       {Do not remember Channel_data, it's rare}
-    rgYGC_Type.ItemIndex:=0;
-  acScanPortsExecute(self);
-  btnConnect.SetFocus;
+  if not UARTconnected then begin
+    StopAllTimer;
+    knPanControl.Position:=2048;
+    if rgYGC_Type.ItemIndex=4 then       {Do not remember Channel_data, it's rare}
+      rgYGC_Type.ItemIndex:=0;
+    acScanPortsExecute(self);
+    btnConnect.SetFocus;
+  end;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -2134,6 +2147,11 @@ end;
 procedure TForm1.knPanControlChange(Sender: TObject; AValue: Longint);
 begin
   lblPanControl.Caption:=IntToStr(InvertPanControlPosition(knPanControl.Position));
+end;
+
+procedure TForm1.pcMainChange(Sender: TObject);
+begin
+  acDisconnectExecute(self);
 end;
 
 {Up to now I had the impression that the motor numbering is counterclockwise.
