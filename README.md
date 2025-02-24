@@ -1,4 +1,8 @@
 # YTHtool - connect and use Typhoon H UARTs
+
+**The development for this tool was discontinued.** The tool was splitted in several single tools based on this. The tools are only available on my homepage for download:
+http://h-elsner.mooo.com/html/downl.htm
+
 This application sends messages to the CGO3+ to control gimbal functions like tilt or pan. You can record answer-messages from the camera and gimbal for analysis or documentation.
 There are two main functions:
 - You can act as flight controller. You have switsches and slider for the gimbal like the ST16 has. This opens possibilities to reuse the camera for other purposes. This is only a Demo.
