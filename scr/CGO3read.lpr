@@ -10,13 +10,13 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, tachartlazaruspkg, CGO3read_main, msg57, mav_msg;
+  Forms, tachartlazaruspkg, CGO3read_main;
 
 {$R *.res}
 
 begin
   RequireDerivedFormResource:=True;
-  Application.Title:='TyphoonH UART tool';
+  Application.Title:='CGO3+ UART tool';
   Application.Scaled:=True;
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
