@@ -6,7 +6,7 @@ Once connected the tool offers three functions:
 - Act as flight controller to tilt and rotate the camera. This offers the possibility to reuse the camera for other purposes. This part is only a demo.
 
   
-**CGO3+ calibration**
+**CGO3+ calibration**   
 The gimbal checker provides a possibility to fully calibrate the gimbal of the CGO3+. This functionality is experimental. Use it on your own risk.
   
 ![Screenshot](Screenshots/screenshot.png)
