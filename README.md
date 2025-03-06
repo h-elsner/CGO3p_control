@@ -10,7 +10,7 @@ The gimbal checker provides a possibility to fully calibrate the gimbal of the C
 ![Screenshot](Screenshots/screenshot.png)
   
   
-  
+** CGO3+ control (Demo) **  
 The is a demo project how to control tilt and pan by your own application. It offers all possibilities that ST16 has including Gimbal Calibration as it would be initiated from ST16 menu.   
   
 ![Screenshot](Screenshots/screenshot_demo.png)
