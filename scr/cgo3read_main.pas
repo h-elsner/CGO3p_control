@@ -888,13 +888,6 @@ begin
   list.Add(s);
 end;
 
-function Uint16ToInt16(v: UInt16): int16;
-begin
-  result:=v and $7F;
-  if (v and $80)>0 then
-    result:=-result;
-end;
-
 procedure TForm1.FillCharts;
 begin
   if tilt<>0 then begin
