@@ -219,7 +219,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.2 2024-03-05';
+  AppVersion='V1.2 2024-03-11';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
@@ -227,7 +227,6 @@ const
 
   maxPorts=10;
   timeout=100;
-  defaultbaud=115200;
   wait=5;
 
 {$IFDEF WINDOWS}
@@ -266,7 +265,7 @@ end;
 procedure TForm1.GUIsetCaptionsAndHints;
 begin
   Caption:=Application.Title+tab2+AppVersion;
-  cbSpeed.Text:=IntToStr(defaultbaud);
+  cbSpeed.Text:=IntToStr(defaultbaudCGO3);
   cbSpeed.Hint:=hntSpeed;
   cbPort.Hint:=hntPort;
   acScanPorts.Caption:=capPort;
@@ -589,7 +588,7 @@ begin
   {$ENDIF}
   UART.Connect(port);
   sleep(200);
-  UART.Config(StrToIntDef(speed, defaultbaud), 8, 'N', SB1, false, false); {Config default 115200 baud, 8N1}
+  UART.Config(StrToIntDef(speed, defaultbaudCGO3), 8, 'N', SB1, false, false); {Config default 115200 baud, 8N1}
   if UART.LastError=0 then begin
     UARTConnected:=true;
     result:='Status: '+UART.LastErrorDesc;
