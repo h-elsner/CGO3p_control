@@ -219,7 +219,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.2 2024-03-11';
+  AppVersion='V1.2 2025-03-11';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
