@@ -74,37 +74,40 @@ type
     acDeleteText: TAction;
     acSaveText: TAction;
     ActionList1: TActionList;
-    btnTempCali: TButton;
-    btnGimbalCali: TButton;
-    btnVersion: TButton;
-    btnZeroPhaseCali: TButton;
-    btnYawEncCali: TButton;
     btnAccCali: TButton;
-    btnZeroPhaseErs: TButton;
     btnAccErase: TButton;
-    btnYawEncErs: TButton;
+    btnFrontErs: TButton;
+    btnMotorTest: TButton;
     btnPreFrontCali: TButton;
+    btnReboot: TButton;
+    btnTempCali: TButton;
+    btnTempErs: TButton;
+    btnGimbalCali: TButton;
     btnDisconnect: TBitBtn;
     btnClose: TBitBtn;
     btnConnect: TBitBtn;
     btnCenter: TButton;
     btnFrontCali: TButton;
-    btnFrontErs: TButton;
-    btnReboot: TButton;
-    btnTempErs: TButton;
+    btnVersion: TButton;
+    btnVibrationTest: TButton;
+    btnYawEncCali: TButton;
+    btnYawEncErs: TButton;
+    btnZeroPhaseCali: TButton;
+    btnZeroPhaseErs: TButton;
     cbPort: TComboBox;
     cbRecord: TCheckBox;
     cbSpeed: TComboBox;
+    gridStatus: TStringGrid;
+    gridVarious: TStringGrid;
     Image1: TImage;
     ImageList1: TImageList;
-    gridVarious: TStringGrid;
     knPanControl: TmKnob;
     lblCameraType: TLabel;
+    lblPowerCycle: TLabel;
     lblTempCali: TLabel;
     lblWarning: TLabel;
     lblSerial: TLabel;
     lblSerialNo: TLabel;
-    lblPowerCycle: TLabel;
     lblGimbalBootTime: TLabel;
     lblBootTime: TLabel;
     lblGimbalVersion: TLabel;
@@ -112,19 +115,19 @@ type
     GIMBALtext: TMemo;
     mnClear: TMenuItem;
     mnSaveText: TMenuItem;
+    panelRight: TPanel;
+    panelTempCali: TPanel;
+    panelYGCBottom: TPanel;
+    rgYGC_Type: TRadioGroup;
     Separator1: TMenuItem;
     mnPorts: TMenuItem;
-    panelTempCali: TPanel;
     pcMain: TPageControl;
-    panelRight: TPanel;
     panelYGCTop: TPanel;
     mnText: TPopupMenu;
-    rgYGC_Type: TRadioGroup;
     rgPanMode: TRadioGroup;
     rgTiltMode: TRadioGroup;
     SaveDialog1: TSaveDialog;
     StatusBar1: TStatusBar;
-    gridStatus: TStringGrid;
     gridAttitude: TStringGrid;
     timerYGCcommandLong: TTimer;
     timerFCCommand: TTimer;
@@ -145,11 +148,13 @@ type
     procedure btnAccEraseClick(Sender: TObject);
     procedure btnCenterClick(Sender: TObject);
     procedure btnFrontErsClick(Sender: TObject);
+    procedure btnMotorTestClick(Sender: TObject);
     procedure btnPreFrontCaliClick(Sender: TObject);
     procedure btnRebootClick(Sender: TObject);
     procedure btnTempCaliClick(Sender: TObject);
     procedure btnTempErsClick(Sender: TObject);
     procedure btnVersionClick(Sender: TObject);
+    procedure btnVibrationTestClick(Sender: TObject);
     procedure btnYawEncCaliClick(Sender: TObject);
     procedure btnYawEncErsClick(Sender: TObject);
     procedure btnZeroPhaseCaliClick(Sender: TObject);
@@ -219,7 +224,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.2 2025-03-11';
+  AppVersion='V1.3 2025-03-21';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
@@ -631,6 +636,7 @@ begin
     lblGimbalVersion.Caption:='';
     lblSerial.Caption:='';
     lblGimbalBootTime.Caption:='';
+    GIMBALtext.Lines.Clear;
     StatusBar1.Panels[0].Text:='0';                    {Sent messages}
     StatusBar1.Panels[1].Text:='0';                    {Received messages}
     WriteCSVRawHeader(csvlist);
@@ -944,13 +950,15 @@ end;
 procedure TForm1.ReadMessage_FE(var msg: TMAVmessage);
 var
   b, len: byte;
-  i: integer;
+  i, counter: integer;
 
 begin
   msg.valid:=false;
+  counter:=0;
   repeat
     b:=UART.RecvByte(timeout);
-  until (b=MagicFE) or (UART.LastError<>0) or (not UARTConnected);
+    inc(counter);
+  until (b=MagicFE) or (UART.LastError<>0) or (not UARTConnected) or (counter>300);
   msg.msgbytes[0]:=b;
   len:=UART.RecvByte(timeout);
   msg.msgbytes[1]:=len;                               {Message length}
@@ -1087,6 +1095,11 @@ begin
   SendYGCCommand($15);
 end;
 
+procedure TForm1.btnMotorTestClick(Sender: TObject);
+begin
+  SendYGCCommand($1E);
+end;
+
 procedure TForm1.btnYawEncCaliClick(Sender: TObject);
 begin
   SendYGCCommand($0C);
@@ -1125,6 +1138,11 @@ end;
 procedure TForm1.btnVersionClick(Sender: TObject);
 begin
   SendYGCCommand($18);
+end;
+
+procedure TForm1.btnVibrationTestClick(Sender: TObject);
+begin
+  SendYGCCommand($20);
 end;
 
 procedure TForm1.cbPortDblClick(Sender: TObject);
