@@ -9,7 +9,7 @@ Once connected the tool offers three functions:
 **CGO3+ calibration**   
 The gimbal checker provides a possibility to fully calibrate the gimbal of the CGO3+. This functionality is experimental. Use it on your own risk.
   
-![Screenshot](Screenshots/screenshot.png)
+![Screenshot](Screenshots/Screenshot_Motortest.png)
   
   
 **CGO3+ control (Demo)**  
