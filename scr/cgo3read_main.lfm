@@ -1,11 +1,11 @@
 object Form1: TForm1
-  Left = 777
-  Height = 759
-  Top = 332
-  Width = 1037
+  Left = 379
+  Height = 670
+  Top = 371
+  Width = 990
   Caption = 'Form1'
-  ClientHeight = 759
-  ClientWidth = 1037
+  ClientHeight = 670
+  ClientWidth = 990
   Constraints.MinHeight = 670
   Constraints.MinWidth = 985
   OnActivate = FormActivate
@@ -16,11 +16,11 @@ object Form1: TForm1
   LCLVersion = '3.7.0.0'
   object upperPanel: TPanel
     Left = 0
-    Height = 736
-    Top = 0
+    Height = 551
+    Top = 96
     Width = 144
     Align = alLeft
-    ClientHeight = 736
+    ClientHeight = 551
     ClientWidth = 144
     TabOrder = 0
     object cbPort: TComboBox
@@ -102,7 +102,7 @@ object Form1: TForm1
     object Image1: TImage
       Left = 9
       Height = 128
-      Top = 608
+      Top = 423
       Width = 128
       Anchors = [akLeft, akBottom]
       Center = True
@@ -635,8 +635,8 @@ object Form1: TForm1
   object StatusBar1: TStatusBar
     Left = 0
     Height = 23
-    Top = 736
-    Width = 1037
+    Top = 647
+    Width = 990
     Panels = <    
       item
         Width = 100
@@ -651,9 +651,9 @@ object Form1: TForm1
   end
   object pcMain: TPageControl
     Left = 144
-    Height = 736
-    Top = 0
-    Width = 893
+    Height = 551
+    Top = 96
+    Width = 846
     ActivePage = tsYGC
     Align = alClient
     Images = ImageList1
@@ -663,88 +663,22 @@ object Form1: TForm1
     OnChange = pcMainChange
     object tsYGC: TTabSheet
       Caption = 'YGC'
-      ClientHeight = 706
-      ClientWidth = 885
+      ClientHeight = 521
+      ClientWidth = 838
       ImageIndex = 1
       PopupMenu = mnText
-      object panelYGCTop: TPanel
-        Left = 0
-        Height = 178
-        Top = 0
-        Width = 885
-        Align = alClient
-        ClientHeight = 178
-        ClientWidth = 885
-        TabOrder = 0
-        object GIMBALtext: TMemo
-          Left = 392
-          Height = 177
-          Top = 1
-          Width = 504
-          Anchors = [akTop, akLeft, akRight, akBottom]
-          Font.Height = -16
-          Font.Name = 'Courier New'
-          Lines.Strings = (
-            'Memo1'
-          )
-          ParentFont = False
-          ScrollBars = ssAutoBoth
-          TabOrder = 0
-          OnMouseWheelDown = GIMBALtextMouseWheelDown
-          OnMouseWheelUp = GIMBALtextMouseWheelUp
-        end
-        object lblBootTime: TLabel
-          Left = 8
-          Height = 17
-          Top = 40
-          Width = 77
-          Caption = 'Boot time [s]:'
-        end
-        object lblGimbalBootTime: TLabel
-          Left = 128
-          Height = 17
-          Top = 40
-          Width = 68
-          Caption = 'Time stamp'
-        end
-        object lblSerialNo: TLabel
-          Left = 8
-          Height = 17
-          Top = 64
-          Width = 32
-          Caption = 'Serial'
-        end
-        object lblSerial: TLabel
-          Left = 128
-          Height = 17
-          Top = 64
-          Width = 95
-          Caption = 'Gimbal serial no'
-        end
-        object lblWarning: TLabel
-          Left = 8
-          Height = 21
-          Top = 8
-          Width = 38
-          Caption = 'warn'
-          Font.Color = clRed
-          Font.Height = -16
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
-      end
       object panelYGCBottom: TPanel
         Left = 0
-        Height = 528
-        Top = 178
-        Width = 885
-        Align = alBottom
+        Height = 521
+        Top = 0
+        Width = 838
+        Align = alClient
         Anchors = [akLeft]
-        ClientHeight = 528
-        ClientWidth = 885
+        ClientHeight = 521
+        ClientWidth = 838
         ParentBackground = False
         ParentColor = False
-        TabOrder = 1
+        TabOrder = 0
         object panelTempCali: TPanel
           Left = 704
           Height = 127
@@ -884,7 +818,7 @@ object Form1: TForm1
         end
         object gridStatus: TStringGrid
           Left = 8
-          Height = 424
+          Height = 392
           Top = 8
           Width = 280
           ColCount = 2
@@ -896,7 +830,7 @@ object Form1: TForm1
         end
         object gridVarious: TStringGrid
           Left = 288
-          Height = 424
+          Height = 392
           Top = 8
           Width = 272
           ColCount = 2
@@ -968,25 +902,32 @@ object Form1: TForm1
           Width = 99
           Caption = 'Vibration Test'
           TabOrder = 8
+          Visible = False
           OnClick = btnVibrationTestClick
         end
-        object lblCameraType: TLabel
-          Left = 116
-          Height = 32
-          Top = 464
-          Width = 80
-          Caption = 'CGO3+'
-          Font.Color = clNavy
-          Font.Height = -24
-          Font.Style = [fsBold]
+        object GIMBALtext: TMemo
+          Left = 8
+          Height = 107
+          Top = 408
+          Width = 688
+          Anchors = [akTop, akLeft, akBottom]
+          Font.Height = -16
+          Font.Name = 'Courier New'
+          Lines.Strings = (
+            'Memo1'
+          )
           ParentFont = False
+          ScrollBars = ssAutoBoth
+          TabOrder = 9
+          OnMouseWheelDown = GIMBALtextMouseWheelDown
+          OnMouseWheelUp = GIMBALtextMouseWheelUp
         end
       end
     end
     object tsFC: TTabSheet
       Caption = 'FC'
-      ClientHeight = 706
-      ClientWidth = 885
+      ClientHeight = 521
+      ClientWidth = 838
       ImageIndex = 5
       object knPanControl: TmKnob
         Left = 208
@@ -1103,6 +1044,66 @@ object Form1: TForm1
           118
         )
       end
+    end
+  end
+  object panelYGCTop: TPanel
+    Left = 0
+    Height = 96
+    Top = 0
+    Width = 990
+    Align = alTop
+    ClientHeight = 96
+    ClientWidth = 990
+    TabOrder = 3
+    object lblBootTime: TLabel
+      Left = 8
+      Height = 17
+      Top = 40
+      Width = 77
+      Caption = 'Boot time [s]:'
+    end
+    object lblGimbalBootTime: TLabel
+      Left = 128
+      Height = 17
+      Top = 40
+      Width = 68
+      Caption = 'Time stamp'
+    end
+    object lblSerialNo: TLabel
+      Left = 8
+      Height = 17
+      Top = 64
+      Width = 32
+      Caption = 'Serial'
+    end
+    object lblSerial: TLabel
+      Left = 128
+      Height = 17
+      Top = 64
+      Width = 95
+      Caption = 'Gimbal serial no'
+    end
+    object lblWarning: TLabel
+      Left = 8
+      Height = 21
+      Top = 8
+      Width = 38
+      Caption = 'warn'
+      Font.Color = clRed
+      Font.Height = -16
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object lblCameraType: TLabel
+      Left = 584
+      Height = 32
+      Top = 28
+      Width = 80
+      Caption = 'CGO3+'
+      Font.Color = clNavy
+      Font.Height = -24
+      Font.Style = [fsBold]
+      ParentFont = False
     end
   end
   object ActionList1: TActionList

@@ -59,8 +59,8 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   lclintf, lcltype, Buttons, ActnList, Process, XMLPropStorage, ComCtrls, Grids,
-  ValEdit, TAGraph, TASeries, TAChartUtils, synaser, MKnob,
-  clipbrd, Menus, mav_def, mav_msg, Types;
+  ValEdit, TAGraph, TASeries, TAChartUtils, synaser, MKnob, clipbrd, Menus,
+  mav_def, mav_msg, Types;
 
 type
 
@@ -97,32 +97,32 @@ type
     cbPort: TComboBox;
     cbRecord: TCheckBox;
     cbSpeed: TComboBox;
+    GIMBALtext: TMemo;
     gridStatus: TStringGrid;
     gridVarious: TStringGrid;
     Image1: TImage;
     ImageList1: TImageList;
     knPanControl: TmKnob;
+    lblBootTime: TLabel;
     lblCameraType: TLabel;
+    lblGimbalBootTime: TLabel;
     lblPowerCycle: TLabel;
-    lblTempCali: TLabel;
-    lblWarning: TLabel;
     lblSerial: TLabel;
     lblSerialNo: TLabel;
-    lblGimbalBootTime: TLabel;
-    lblBootTime: TLabel;
+    lblTempCali: TLabel;
     lblGimbalVersion: TLabel;
     lblPanControl: TLabel;
-    GIMBALtext: TMemo;
+    lblWarning: TLabel;
     mnClear: TMenuItem;
     mnSaveText: TMenuItem;
     panelRight: TPanel;
     panelTempCali: TPanel;
     panelYGCBottom: TPanel;
+    panelYGCTop: TPanel;
     rgYGC_Type: TRadioGroup;
     Separator1: TMenuItem;
     mnPorts: TMenuItem;
     pcMain: TPageControl;
-    panelYGCTop: TPanel;
     mnText: TPopupMenu;
     rgPanMode: TRadioGroup;
     rgTiltMode: TRadioGroup;
@@ -212,7 +212,7 @@ type
     procedure TEXT_MESSAGE(msg: TMAVmessage);
   end;
 
-  {$I CGO3tool_en.inc}
+  {$I CGO3tool_de.inc}
 
 var
   Form1: TForm1;
@@ -224,7 +224,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.3 2025-03-21';
+  AppVersion='V1.3 2025-04-02';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
