@@ -8,12 +8,12 @@ object Form1: TForm1
   ClientWidth = 990
   Constraints.MinHeight = 670
   Constraints.MinWidth = 985
+  SessionProperties = 'cbPort.Text;cbRecord.Checked;cbSpeed.Text;cbTelemetry.Checked;Height;knPanControl.Position;Left;pcMain.ActivePage;rgPanMode.ItemIndex;rgTiltMode.ItemIndex;rgYGC_Type.ItemIndex;Top;Width;WindowState;GIMBALtext.Font'
+  ShowHint = True
+  LCLVersion = '4.0.0.3'
   OnActivate = FormActivate
   OnClose = FormClose
   OnCreate = FormCreate
-  SessionProperties = 'cbPort.Text;cbRecord.Checked;cbSpeed.Text;cbTelemetry.Checked;Height;knPanControl.Position;Left;pcMain.ActivePage;rgPanMode.ItemIndex;rgTiltMode.ItemIndex;rgYGC_Type.ItemIndex;Top;Width;WindowState;GIMBALtext.Font'
-  ShowHint = True
-  LCLVersion = '3.7.0.0'
   object upperPanel: TPanel
     Left = 0
     Height = 551
@@ -106,7 +106,6 @@ object Form1: TForm1
       Width = 128
       Anchors = [akLeft, akBottom]
       Center = True
-      OnClick = Image1Click
       Picture.Data = {
         1754506F727461626C654E6574776F726B47726170686963F840000089504E47
         0D0A1A0A0000000D494844520000005A0000005A080600000038A84102000040
@@ -630,6 +629,7 @@ object Form1: TForm1
         41CFE935FA1BBF47B34D22FD4FAB56ADC6D2770AD3B18463FEFD39FC271FFF0F
         3B5AA79EDC6282400000000049454E44AE426082
       }
+      OnClick = Image1Click
     end
   end
   object StatusBar1: TStatusBar
@@ -864,9 +864,9 @@ object Form1: TForm1
             'TEMP_DIFF'
             'Channel_data'
           )
-          OnClick = rgYGC_TypeClick
           ParentBackground = False
           TabOrder = 4
+          OnClick = rgYGC_TypeClick
         end
         object btnVersion: TButton
           Left = 584
@@ -1096,12 +1096,12 @@ object Form1: TForm1
     end
     object lblCameraType: TLabel
       Left = 584
-      Height = 32
+      Height = 45
       Top = 28
-      Width = 80
+      Width = 107
       Caption = 'CGO3+'
       Font.Color = clNavy
-      Font.Height = -24
+      Font.Height = -32
       Font.Style = [fsBold]
       ParentFont = False
     end

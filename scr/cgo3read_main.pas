@@ -192,6 +192,7 @@ type
     procedure ClearMessageTables;
     procedure FillCharts;
     procedure GUIsetCaptionsAndHints;
+
   public
     procedure ReadMessage_FE(var msg: TMAVmessage);
     procedure ReadGimbalPosition(msg: TMAVmessage);
@@ -224,7 +225,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.3 2025-04-02';
+  AppVersion='V1.3 2025-04-11';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
