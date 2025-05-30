@@ -65,7 +65,7 @@ resourcestring                                     {english}
   hntCenter='Set to neutral position';
   hntTiltControl='Camera tilt';
   hntTiltMode='Tilt mode: Angle / Velocity';
-  hntPanMode='Pan mode: Follow / Pan controllable / Global';
+  hntPanMode='Pan mode: Follow / Pan controllable / Global / Angle';
   hntPanControl='Pan control';
   capAddValue='Additonal data chart';
   hntAddValue='Select what you want to see in the chart';

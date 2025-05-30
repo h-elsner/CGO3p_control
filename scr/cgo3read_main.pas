@@ -225,7 +225,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.3 2025-04-11';
+  AppVersion='V1.4 2025-05-30';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
@@ -526,8 +526,9 @@ begin
     0: result:=683;
     1: result:=1502;
     2: result:=3412;
-    3: result:=1433;                                   {Teammode}
-    4: result:=2048;                                   {Neutral - sollte eigentlich nicht auftrete }
+    3: result:=830;                                    {Angle mode like E90}
+    4: result:=1433;                                   {Teammode}
+    5: result:=2048;                                   {Neutral - sollte eigentlich nicht auftrete }
   end;
 end;
 
@@ -571,7 +572,7 @@ begin
   msg.msgbytes[5]:=2;                                  {TargetId Gimbal}
   msg.msgbytes[7]:=1;                                  {MsgID}
 
-  SetUInt16ToMsg(msg, 22, InvertPanControlPosition(knPanControl.Position));
+  SetUInt16ToMsg(msg, 22, UpscaleTo150(InvertPanControlPosition(knPanControl.Position), (rgPanMode.ItemIndex=3)));
   SetUInt16ToMsg(msg, 24, tbTiltControl.Position);
   SetUInt16ToMsg(msg, 26, 2048);
   if command<$FFFF then

@@ -66,7 +66,7 @@ resourcestring                                     {deutsch}
   hntCenter='Setze zurück in neutrale Position (Mittelstellung)';
   hntTiltControl='Kamera neigen';
   hntTiltMode='Tilt mode: Angle / Velocity';
-  hntPanMode='Pan mode: Follow / Pan controllable / Global';
+  hntPanMode='Pan mode: Follow / Pan controllable / Global / Angle';
   hntPanControl='Kamera drehen';
   capAddValue='Zusätzliches Datendiagramm';
   hntAddValue='Wähle, welchen Wert du im Diagramm sehen willst.';
