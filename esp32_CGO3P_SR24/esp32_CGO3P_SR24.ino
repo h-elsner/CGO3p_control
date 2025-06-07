@@ -24,19 +24,23 @@ Wiring depends on HW port definition below.
 #define CGO3_TXD2 17      // mRx/PWM
 
 #define UART_speed 115200
-#define X25_INIT_CRC 0xFFFF
-#define CRC_EXTRA 0
-#define sr24header 0x55
-#define sr24buffer_size 44
 #define cgo3buffer_size 36
 #define bindarray_size 11
+#define panmode_F 683
+const uint16_t X25_INIT_CRC = 0xFFFF;
+const byte sr24header = 0x55;
+const uint16_t CRC_EXTRA = 0;
+
 
 const byte BINDARR[bindarray_size] = {0x55, 0x55, 0x08, 0x04, 0x00, 0x00, 0x42, 0x49, 0x4E, 0x44, 0xB0};
 //                                    hd1   hd2   len     1    2      3    4     5      6    7    CRC8 (for payload 0..7 = 8 bytes)
 //                                    SR24buffer
 // byte FC_heartbeat[15]= {0xFE, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
 
-byte sr24buffer[sr24buffer_size];
+byte sr24buffer[44];
+uint16_t crc16 = 0xFFFF;
+byte cgo3sequno = 0;
+
 
 //                                                                                      pan------ tilt-----       pan mode- tilt mode          CRC_l CRC_h
 byte cgo3buffer[cgo3buffer_size] = {0xFE,26,0,1,0,2,0,1,0,0,0,0,0,0,0,0,0,0,0x37,0,8,0, 0x00,0x08,0xAB,0x02, 0,8, 0xAB,0x02,0x88,0x08, 0xF4,1, 0x00, 0x00};
@@ -47,6 +51,16 @@ static inline void crc_accumulate(uint8_t data, uint16_t *crcAccum) {
   tmp = data ^ (uint8_t)(*crcAccum &0xFF);
   tmp ^= (tmp<<4);
   *crcAccum = (*crcAccum>>8) ^ (tmp<<8) ^ (tmp <<3) ^ (tmp>>4);
+}
+
+uint16_t UpscaleTo150 (int val, bool convert = true) {                 // Scale 683 to 3412 (100%)
+  if (convert) {
+    val -= panmode_F;
+    if (val < 0) {val = 0;} 
+    float val_asfloat = val * 4095.0 / 2729.0;      // Scale 0 to 4095 (150%)
+    val = round(val_asfloat);
+  }  
+  return val & 0x0FFF;
 }
 
 void setup() {
@@ -74,14 +88,12 @@ void setup() {
 }
 
 void loop() {
-  uint16_t crc16 = 0xFFFF;
-  uint16_t aux = 0;            
+  uint16_t aux;            
   byte sr24len = 0;
-  byte incomingByte = 0; 
-  int numreadbytes = 0;
-  byte cgo3sequno = 1;
+  byte incomingByte; 
+  int numreadbytes;
 
-  if (Serial1.available()) {
+  if (Serial1.available() > 1) {
     incomingByte = Serial1.read();
     if ((incomingByte == sr24header) && (Serial1.peek() == sr24header)) {   
 
@@ -97,7 +109,7 @@ If not we send simply the received byte.
       sr24len = Serial1.peek();          // Save message length
       numreadbytes = Serial1.readBytes(sr24buffer, sr24len+1);    
 
-      if (numreadbytes == sr24len+1) { 
+      if ((sr24len > 0) && (numreadbytes == sr24len+1)) { 
 
 /* 
 Complete message received (buffer read matches msg length). Now we need to check
@@ -117,7 +129,6 @@ After that the CRC16 will be recreated and the message will be sent to CGO3+ por
 CRC16 calculation from https://github.com/mavlink/c_library_v2/blob/master/checksum.h
 */
 
-          cgo3buffer[2] = cgo3sequno;
 
           cgo3buffer[22] = sr24buffer[17];                            // Camera pan 
           cgo3buffer[23] = (sr24buffer[16] & 0x0F);                   // 12 bytes per channel
@@ -143,6 +154,7 @@ CRC16 calculation from https://github.com/mavlink/c_library_v2/blob/master/check
             digitalWrite(LEDlightPIN, LOW);
           }
 
+          cgo3buffer[2] = cgo3sequno;
           crc16 = 0xFFFF;
           for (uint8_t k=1; k<(cgo3buffer_size-2); k++) {
             crc_accumulate(cgo3buffer[k], &crc16);
@@ -162,3 +174,4 @@ CRC16 calculation from https://github.com/mavlink/c_library_v2/blob/master/check
   }
 
 }
+
