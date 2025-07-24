@@ -30,6 +30,8 @@ resourcestring                                     {english}
   hntCopySerial='Copy Vehicle ID (serial number) to clipboard.';
   capReboot='Reboot';
   hntReboot='Restart gimbal';
+  capAnyCode='Any code';
+  hntAnyCode='Send any hexadecimal code from the command list to the gimbal. Be carefully with that!';
 
   captsGUI='Act as H480 GUI replacement';
   captsYGC='Act as gimbal checker for CGO3+';
@@ -70,6 +72,8 @@ resourcestring                                     {english}
   capAddValue='Additonal data chart';
   hntAddValue='Select what you want to see in the chart';
   titSaveText='Save text messages...';
+  capSetDefault='Set default';
+  hntSetDefault='Set all camera controls to default postion';
 
   rsSaved=' saved';
   rsDisconnected='Disconnected';

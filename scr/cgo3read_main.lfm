@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 379
+  Left = 703
   Height = 670
-  Top = 371
+  Top = 400
   Width = 990
   Caption = 'Form1'
   ClientHeight = 670
@@ -16,19 +16,19 @@ object Form1: TForm1
   OnCreate = FormCreate
   object upperPanel: TPanel
     Left = 0
-    Height = 551
+    Height = 556
     Top = 96
     Width = 144
     Align = alLeft
-    ClientHeight = 551
+    ClientHeight = 556
     ClientWidth = 144
     TabOrder = 0
     object cbPort: TComboBox
       Left = 9
-      Height = 25
+      Height = 28
       Top = 10
       Width = 128
-      ItemHeight = 17
+      ItemHeight = 0
       ItemIndex = 0
       Items.Strings = (
         '/dev/ttyUSB0'
@@ -42,13 +42,14 @@ object Form1: TForm1
       Text = '/dev/ttyUSB0'
       TextHint = 'Serial port'
       OnDblClick = cbPortDblClick
+      OnGetItems = cbPortGetItems
     end
     object cbSpeed: TComboBox
       Left = 9
-      Height = 25
-      Top = 50
+      Height = 28
+      Top = 88
       Width = 128
-      ItemHeight = 17
+      ItemHeight = 0
       Items.Strings = (
         '14400'
         '19200'
@@ -62,10 +63,10 @@ object Form1: TForm1
       TabOrder = 1
     end
     object btnConnect: TBitBtn
-      Left = 9
+      Left = 8
       Height = 30
-      Top = 88
-      Width = 121
+      Top = 136
+      Width = 128
       Action = acConnect
       Images = ImageList1
       ImageIndex = 3
@@ -74,18 +75,18 @@ object Form1: TForm1
     object btnClose: TBitBtn
       Left = 9
       Height = 30
-      Top = 272
-      Width = 121
+      Top = 310
+      Width = 128
       Action = acClose
       Images = ImageList1
       ImageIndex = 0
       TabOrder = 3
     end
     object btnDisconnect: TBitBtn
-      Left = 9
+      Left = 8
       Height = 30
-      Top = 136
-      Width = 121
+      Top = 184
+      Width = 128
       Action = acDisconnect
       Images = ImageList1
       ImageIndex = 4
@@ -93,16 +94,16 @@ object Form1: TForm1
     end
     object cbRecord: TCheckBox
       Left = 16
-      Height = 21
-      Top = 232
-      Width = 74
+      Height = 23
+      Top = 270
+      Width = 82
       Caption = 'cbRecord'
       TabOrder = 5
     end
     object Image1: TImage
       Left = 9
       Height = 128
-      Top = 423
+      Top = 428
       Width = 128
       Anchors = [akLeft, akBottom]
       Center = True
@@ -631,11 +632,21 @@ object Form1: TForm1
       }
       OnClick = Image1Click
     end
+    object btnReNewPortList: TBitBtn
+      Left = 9
+      Height = 30
+      Top = 48
+      Width = 128
+      Action = acScanPorts
+      Images = ImageList1
+      ImageIndex = 2
+      TabOrder = 6
+    end
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Height = 23
-    Top = 647
+    Height = 18
+    Top = 652
     Width = 990
     Panels = <    
       item
@@ -651,7 +662,7 @@ object Form1: TForm1
   end
   object pcMain: TPageControl
     Left = 144
-    Height = 551
+    Height = 556
     Top = 96
     Width = 846
     ActivePage = tsYGC
@@ -663,30 +674,30 @@ object Form1: TForm1
     OnChange = pcMainChange
     object tsYGC: TTabSheet
       Caption = 'YGC'
-      ClientHeight = 521
-      ClientWidth = 838
+      ClientHeight = 526
+      ClientWidth = 836
       ImageIndex = 1
       PopupMenu = mnText
       object panelYGCBottom: TPanel
         Left = 0
-        Height = 521
+        Height = 526
         Top = 0
-        Width = 838
+        Width = 836
         Align = alClient
         Anchors = [akLeft]
-        ClientHeight = 521
-        ClientWidth = 838
+        ClientHeight = 526
+        ClientWidth = 836
         ParentBackground = False
         ParentColor = False
         TabOrder = 0
         object panelTempCali: TPanel
           Left = 704
-          Height = 127
-          Top = 376
+          Height = 208
+          Top = 408
           Width = 126
           BevelColor = clRed
           BevelWidth = 2
-          ClientHeight = 127
+          ClientHeight = 208
           ClientWidth = 126
           ParentBackground = False
           ParentColor = False
@@ -712,23 +723,40 @@ object Form1: TForm1
           end
           object lblTempCali: TLabel
             Left = 8
-            Height = 21
+            Height = 19
             Top = 16
-            Width = 96
+            Width = 98
             Caption = 'IMU temp cali'
             Font.Color = clRed
             Font.Height = -16
             ParentFont = False
           end
+          object edAnyCode: TEdit
+            Left = 24
+            Height = 28
+            Top = 136
+            Width = 72
+            TabOrder = 2
+            TextHint = 'Command code hex'
+          end
+          object btnAnyCode: TButton
+            Left = 8
+            Height = 25
+            Top = 168
+            Width = 107
+            Caption = 'Any code'
+            TabOrder = 3
+            OnClick = btnAnyCodeClick
+          end
         end
         object panelRight: TPanel
           Left = 704
-          Height = 348
+          Height = 384
           Top = 16
           Width = 126
           BevelColor = clRed
           BevelWidth = 2
-          ClientHeight = 348
+          ClientHeight = 384
           ClientWidth = 126
           ParentBackground = False
           ParentColor = False
@@ -800,20 +828,29 @@ object Form1: TForm1
           end
           object lblPowerCycle: TLabel
             Left = 8
-            Height = 17
-            Top = 271
-            Width = 96
+            Height = 16
+            Top = 280
+            Width = 97
             Caption = 'Power cycle cam'
           end
           object btnAccCali: TButton
             Left = 8
             Height = 25
-            Top = 304
+            Top = 312
             Width = 107
             Caption = 'AccCali'
             ParentBidiMode = False
             TabOrder = 7
             OnClick = btnAccCaliClick
+          end
+          object btnFrontCali: TButton
+            Left = 8
+            Height = 25
+            Top = 344
+            Width = 107
+            Caption = 'FrontCali'
+            TabOrder = 8
+            OnClick = btnFrontCaliClick
           end
         end
         object gridStatus: TStringGrid
@@ -854,8 +891,8 @@ object Form1: TForm1
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 146
-          ClientWidth = 124
+          ClientHeight = 151
+          ClientWidth = 126
           ItemIndex = 0
           Items.Strings = (
             'GYRO_POWER'
@@ -891,23 +928,22 @@ object Form1: TForm1
           Height = 25
           Top = 288
           Width = 99
-          Caption = 'Motor Test'
+          Caption = 'Motor test'
           TabOrder = 7
           OnClick = btnMotorTestClick
         end
         object btnVibrationTest: TButton
           Left = 584
           Height = 25
-          Top = 320
+          Top = 328
           Width = 99
-          Caption = 'Vibration Test'
+          Caption = 'Machine test'
           TabOrder = 8
-          Visible = False
           OnClick = btnVibrationTestClick
         end
         object GIMBALtext: TMemo
           Left = 8
-          Height = 107
+          Height = 112
           Top = 408
           Width = 688
           Anchors = [akTop, akLeft, akBottom]
@@ -926,8 +962,8 @@ object Form1: TForm1
     end
     object tsFC: TTabSheet
       Caption = 'FC'
-      ClientHeight = 521
-      ClientWidth = 838
+      ClientHeight = 526
+      ClientWidth = 836
       ImageIndex = 5
       object knPanControl: TmKnob
         Left = 208
@@ -941,7 +977,7 @@ object Form1: TForm1
       end
       object rgPanMode: TRadioGroup
         Left = 136
-        Height = 145
+        Height = 152
         Top = 16
         Width = 48
         AutoFill = True
@@ -953,8 +989,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 123
-        ClientWidth = 44
+        ClientHeight = 135
+        ClientWidth = 46
         ItemIndex = 0
         Items.Strings = (
           'F'
@@ -978,8 +1014,8 @@ object Form1: TForm1
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 99
-        ClientWidth = 44
+        ClientHeight = 104
+        ClientWidth = 46
         ItemIndex = 0
         Items.Strings = (
           'A'
@@ -1001,9 +1037,9 @@ object Form1: TForm1
       end
       object lblPanControl: TLabel
         Left = 224
-        Height = 17
+        Height = 16
         Top = 16
-        Width = 28
+        Width = 32
         Caption = '2048'
       end
       object btnCenter: TButton
@@ -1016,10 +1052,10 @@ object Form1: TForm1
         OnClick = btnCenterClick
       end
       object lblGimbalVersion: TLabel
-        Left = 24
-        Height = 17
-        Top = 198
-        Width = 63
+        Left = 208
+        Height = 16
+        Top = 151
+        Width = 64
         Caption = 'Gimbal FW'
       end
       object btnGimbalCali: TButton
@@ -1045,6 +1081,15 @@ object Form1: TForm1
           118
         )
       end
+      object btnSetDefault: TButton
+        Left = 8
+        Height = 33
+        Top = 192
+        Width = 104
+        Caption = 'Set default'
+        TabOrder = 7
+        OnClick = btnSetDefaultClick
+      end
     end
   end
   object panelYGCTop: TPanel
@@ -1058,37 +1103,37 @@ object Form1: TForm1
     TabOrder = 3
     object lblBootTime: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 40
-      Width = 77
+      Width = 78
       Caption = 'Boot time [s]:'
     end
     object lblGimbalBootTime: TLabel
       Left = 128
-      Height = 17
+      Height = 16
       Top = 40
-      Width = 68
+      Width = 71
       Caption = 'Time stamp'
     end
     object lblSerialNo: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 64
       Width = 32
       Caption = 'Serial'
     end
     object lblSerial: TLabel
       Left = 128
-      Height = 17
+      Height = 16
       Top = 64
       Width = 95
       Caption = 'Gimbal serial no'
     end
     object lblWarning: TLabel
       Left = 8
-      Height = 21
+      Height = 19
       Top = 8
-      Width = 38
+      Width = 37
       Caption = 'warn'
       Font.Color = clRed
       Font.Height = -16
@@ -1097,9 +1142,9 @@ object Form1: TForm1
     end
     object lblCameraType: TLabel
       Left = 584
-      Height = 45
+      Height = 37
       Top = 28
-      Width = 107
+      Width = 103
       Caption = 'CGO3+'
       Font.Color = clNavy
       Font.Height = -32

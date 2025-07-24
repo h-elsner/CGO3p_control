@@ -76,6 +76,8 @@ type
     ActionList1: TActionList;
     btnAccCali: TButton;
     btnAccErase: TButton;
+    btnSetDefault: TButton;
+    btnReNewPortList: TBitBtn;
     btnFrontErs: TButton;
     btnMotorTest: TButton;
     btnPreFrontCali: TButton;
@@ -94,9 +96,11 @@ type
     btnYawEncErs: TButton;
     btnZeroPhaseCali: TButton;
     btnZeroPhaseErs: TButton;
+    btnAnyCode: TButton;
     cbPort: TComboBox;
     cbRecord: TCheckBox;
     cbSpeed: TComboBox;
+    edAnyCode: TEdit;
     GIMBALtext: TMemo;
     gridStatus: TStringGrid;
     gridVarious: TStringGrid;
@@ -146,11 +150,14 @@ type
     procedure acScanPortsExecute(Sender: TObject);
     procedure btnAccCaliClick(Sender: TObject);
     procedure btnAccEraseClick(Sender: TObject);
+    procedure btnAnyCodeClick(Sender: TObject);
     procedure btnCenterClick(Sender: TObject);
+    procedure btnFrontCaliClick(Sender: TObject);
     procedure btnFrontErsClick(Sender: TObject);
     procedure btnMotorTestClick(Sender: TObject);
     procedure btnPreFrontCaliClick(Sender: TObject);
     procedure btnRebootClick(Sender: TObject);
+    procedure btnSetDefaultClick(Sender: TObject);
     procedure btnTempCaliClick(Sender: TObject);
     procedure btnTempErsClick(Sender: TObject);
     procedure btnVersionClick(Sender: TObject);
@@ -161,6 +168,7 @@ type
     procedure btnZeroPhaseErsClick(Sender: TObject);
     procedure btnGimbalCaliClick(Sender: TObject);
     procedure cbPortDblClick(Sender: TObject);
+    procedure cbPortGetItems(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
@@ -213,7 +221,7 @@ type
     procedure TEXT_MESSAGE(msg: TMAVmessage);
   end;
 
-  {$I CGO3tool_de.inc}
+  {$I CGO3tool_en.inc}
 
 var
   Form1: TForm1;
@@ -225,7 +233,7 @@ var
   pan, roll, tilt, voltage: uint16;
 
 const
-  AppVersion='V1.4 2025-05-30';
+  AppVersion='V1.5 2025-07-24';
   linkLazarus='https://www.lazarus-ide.org/';
 
   tab1=' ';
@@ -294,8 +302,13 @@ begin
   btnVersion.Hint:=hntVersion;
   btnCenter.Caption:=capCenter;
   btnCenter.Hint:=hntCenter;
+  btnSetDefault.Caption:=capSetDefault;
+  btnSetDefault.Hint:=hntSetDefault;
   btnReboot.Caption:=capReboot;
   btnReboot.Hint:=hntReboot;
+  btnAnyCode.Caption:=capAnyCode;
+  btnAnyCode.Hint:=hntAnyCode;
+  edAnyCode.Hint:=hntAnycode;
 
   lblBootTime.Caption:=capFCtime;
   lblBootTime.Hint:=hntBoottime;
@@ -512,23 +525,23 @@ end;
 
 function TForm1.TiltModeToInt: uint16;
 begin
-  result:=2048;
+  result:=channel_neutral;
   case rgTiltMode.ItemIndex of
     0: result:=2184;
-    1: result:=3412;
+    1: result:=channel_max;
   end;
 end;
 
 function TForm1.PanModeToInt: uint16;
 begin
-  result:=2048;
+  result:=channel_neutral;
   case rgPanMode.ItemIndex of
-    0: result:=683;
+    0: result:=channel_min;
     1: result:=1502;
-    2: result:=3412;
+    2: result:=channel_max;
     3: result:=830;                                    {Angle mode like E90}
     4: result:=1433;                                   {Teammode}
-    5: result:=2048;                                   {Neutral - sollte eigentlich nicht auftrete }
+    5: result:=channel_neutral;                        {Neutral - sollte eigentlich nicht auftrete }
   end;
 end;
 
@@ -574,7 +587,7 @@ begin
 
   SetUInt16ToMsg(msg, 22, UpscaleTo150(InvertPanControlPosition(knPanControl.Position), (rgPanMode.ItemIndex=3)));
   SetUInt16ToMsg(msg, 24, tbTiltControl.Position);
-  SetUInt16ToMsg(msg, 26, 2048);
+  SetUInt16ToMsg(msg, 26, channel_neutral);
   if command<$FFFF then
     SetUInt16ToMsg(msg, 28, command)
   else
@@ -857,6 +870,12 @@ begin
   NumberMessagesInStatusBar;
 end;
 
+procedure MachineTest;
+begin
+  (* Those messages appear dirctly after button Machine test.
+     Machine test is running but no text response. *)
+end;
+
 procedure TForm1.ReadYGCcameraMessages(msg: TMAVmessage);
 begin
   if msg.sysid=2 then begin
@@ -871,6 +890,7 @@ begin
         4: if rgYGC_Type.ItemIndex=4 then Channel_data(msg);
         5: if rgYGC_Type.ItemIndex=3 then GIMBAL_TEMP_DIFF(msg);
         6: GIMBAL_STATUS(msg);
+        9..13: MachineTest;
         $12: CAM_SERIAL(msg);
         $FE: TEXT_MESSAGE(msg);
       else
@@ -1044,7 +1064,7 @@ end;
 
 procedure TForm1.btnCenterClick(Sender: TObject);
 begin
-  knPanControl.Position:=2048;
+  knPanControl.Position:=channel_neutral;
 end;
 
 procedure SendYGCCommand(const CommandCode: byte);
@@ -1091,6 +1111,17 @@ begin
   SendYGCCommand($13);
 end;
 
+procedure TForm1.btnAnyCodeClick(Sender: TObject);
+var
+  code: string;
+
+begin
+  code:=trim(edAnyCode.Text);
+  code:=StringReplace(code, '0x', '', [rfReplaceAll, rfIgnoreCase]);
+  code:=StringReplace(code, '&', '', [rfReplaceAll]);
+  SendYGCCommand(StrToIntDef('$'+code, $18));
+end;
+
 procedure TForm1.btnFrontErsClick(Sender: TObject);
 begin
   rgYGC_Type.ItemIndex:=1;
@@ -1099,6 +1130,8 @@ end;
 
 procedure TForm1.btnMotorTestClick(Sender: TObject);
 begin
+  SendYGCCommand($06);
+  sleep(1000);
   SendYGCCommand($1E);
 end;
 
@@ -1112,9 +1145,22 @@ begin
   SendYGCCommand($0F);
 end;
 
+procedure TForm1.btnFrontCaliClick(Sender: TObject);
+begin
+  SendYGCCommand($14);
+end;
+
 procedure TForm1.btnRebootClick(Sender: TObject);
 begin
   SendYGCCommand($19);
+end;
+
+procedure TForm1.btnSetDefaultClick(Sender: TObject);
+begin
+  tbTiltControl.Position:=channel_min;
+  rgTiltMode.ItemIndex:=0;
+  rgPanMode.ItemIndex:=0;
+  knPanControl.Position:=channel_neutral;
 end;
 
 procedure TForm1.btnTempCaliClick(Sender: TObject);
@@ -1134,6 +1180,8 @@ end;
 
 procedure TForm1.btnAccCaliClick(Sender: TObject);
 begin
+  SendYGCCommand($06);
+  sleep(1000);
   SendYGCCommand($12);
 end;
 
@@ -1144,6 +1192,8 @@ end;
 
 procedure TForm1.btnVibrationTestClick(Sender: TObject);
 begin
+  SendYGCCommand($06);
+  sleep(1000);
   SendYGCCommand($20);
 end;
 
@@ -1152,11 +1202,16 @@ begin
   acScanPortsExecute(self);
 end;
 
+procedure TForm1.cbPortGetItems(Sender: TObject);
+begin
+  acScanPortsExecute(self);
+end;
+
 procedure TForm1.FormActivate(Sender: TObject);
 begin
   if not UARTconnected then begin
     StopAllTimer;
-    knPanControl.Position:=2048;
+    knPanControl.Position:=channel_neutral;
     if rgYGC_Type.ItemIndex=4 then       {Do not remember Channel_data, it's rare}
       rgYGC_Type.ItemIndex:=0;
     acScanPortsExecute(self);

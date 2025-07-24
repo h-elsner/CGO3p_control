@@ -12,7 +12,8 @@ resourcestring                                     {deutsch}
   hntSensor='Daten-Messages in eine binäre Datei speichern. Das Format ist wie die Sensordateien im FlightLog';
   capWarning='Keine Garantie. Benutzung auf eigenes Risiko!';
   hntPowerCycle='Verbindung trennen, Kamera ausschalten, kurz warten,'+lineending+'Kamera wieder einschalten und Verbinden.';
-
+  capAnyCode='Any code';
+  hntAnyCode='Sende beliebigen Code als Hexadezimalzahl aus der Kommandoliste zum Gimbal. Vorsicht bei unbekannten codes!';
 
   capSaveText='&Text speichern';
   hntSaveText='Die Textmeldungen in eine Textdatei speichern';
@@ -70,8 +71,8 @@ resourcestring                                     {deutsch}
   hntPanControl='Kamera drehen';
   capAddValue='Zusätzliches Datendiagramm';
   hntAddValue='Wähle, welchen Wert du im Diagramm sehen willst.';
-  titScreenshot='Screenshot als Bild speichern...';
-  titSaveText='Textmeldungen speichern...';
+  capSetDefault='Set Default';
+  hntSetDefault='Stelle alle Kamera-Bedienelemente zurück auf Defaultposition.';
 
   rsSaved=' gespeichert';
   rsDisconnected='Getrennt';
